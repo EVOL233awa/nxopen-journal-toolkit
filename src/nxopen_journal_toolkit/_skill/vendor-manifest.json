@@ -1,13 +1,13 @@
 {
   "skill": {
     "version": "v1.6.0",
-    "commit": "6b8f8c7f722d61852b779c4351af4a093b5cd0cf",
+    "commit": "762296b20b3b83870b825e2faf3f0ef51935798b",
     "file_count": 123,
-    "tree_sha256": "39ffe2e9d1f4bbbacdfc9d895f835d5b7f2c0bb701d59dab9dfc30357409161f",
+    "tree_sha256": "b468f09f5e066d0d09532bda616aa82b9e1ab4c4838aab916709d8173629cb77",
     "files": {
       ".gitattributes": "60fbdf48b53ac9d359360a35c7cd432fc063d2d3626b7fd070eb98ab1542aaef",
       "agents/openai.yaml": "469b0e32a5d761927303429cdd9100eff600c56345d67fbb9589d63af5ebf0e6",
-      "CHANGELOG.md": "ce43f796ddc1c5e535e1655c1fb5cbabfe2a38dee6d2bbc723bcf42df61c89d8",
+      "CHANGELOG.md": "b50a63974ebfa189b051926244290235d23fae7cb40d88d73e6be9483af8cd81",
       "docs/wiki/01-architecture.md": "6d2a85182f01b92a2e0586c6d489f98d975c449841124c232b10e5477327b84c",
       "docs/wiki/02-execution-flow.md": "faa1bdbc9e547600ed11f991f88eb4b3ac0c04b2c2cf6ae3fc4585bbd967f3aa",
       "docs/wiki/03-modules.md": "a783cadc8f533677726e72e844cc94d1e098b5ca19de4e410c6e7b9126e8a6fd",
@@ -24,8 +24,8 @@
       "images/motion.png": "ea3b78824615d30c3aadd68757579678ebf9e5cbed2deb14fddddbf4ac2a9727",
       "images/za-assembly.png": "19256d19452317bb06195469575113a47f104c2dd294e7b0f7f3a205426b96a8",
       "LICENSE": "bc8b379fdfd394fa1764329c1f13984ef368bec44fa2d68a243c3f3cc452786e",
-      "README.en.md": "c167bcf273e1e725d859021ccd237340578025e7e8a90420721a9fc71217a27b",
-      "README.md": "f23b0e8eb715ad4241df68ffa50de6ce3b5226065ff99960f00c75c4b1b57616",
+      "README.en.md": "ffcc8558c9179aed83651da204d5471ee6535827ff5de7d85247a2121a59ed25",
+      "README.md": "6aea948f897d5ee4629a37b470dc2e69b3eaab9038ce4a6a844ac7aa6d34a900",
       "references/assembly.md": "c7c749253c4938e2b2c9df8dab93224a2d789c0334fd94372e5a83128e718036",
       "references/drafting-annotation.md": "e86d7415e9457460bd4bb5e91694674f85555fc9303bc16bbfc94664db051eaf",
       "references/drafting.md": "4ed7ea68bdeefc80b9e936f5e6f5d161e9ed55475b71fb71d3561c20f3bfcce7",
@@ -127,7 +127,7 @@
       "scripts/tests/verify_check_rules.py": "8239cdce4c08975c0e702744ff75db4dbd40e466d03e4d309d6c161cbc2e0a37",
       "scripts/tests/verify_load_options.py": "7bfef352f230a9c51189faee0ef31b12b3e765a96021bf85cfcc4ff2cb7834ff",
       "scripts/tests/verify_runner_markers.py": "2dfdc312d690a20cae0adc5480c248fed6561cbbba12b0fe0133de3e258e01c6",
-      "SKILL.md": "e8b600a6b104a157ce95988b17d9f874d1393815e4c0ccd99e279a919ce426e4"
+      "SKILL.md": "598d87391332e031c594808b59c9645ae2ad60f432cb1185c778360ddd3d2138"
     }
   }
 }
