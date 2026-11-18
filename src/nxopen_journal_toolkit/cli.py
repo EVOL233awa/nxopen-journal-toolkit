@@ -4,9 +4,12 @@ from __future__ import annotations
 import importlib.util
 import json
 import os
+import queue
 import shutil
 import subprocess
 import sys
+import threading
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -57,6 +60,27 @@ def _read_zcode() -> dict:
     if not ZCODE_CONFIG.exists():
         return {}
     return json.loads(ZCODE_CONFIG.read_text(encoding="utf-8"))
+
+
+def _server_entry() -> dict:
+    cfg = _read_zcode()
+    return (cfg.get("mcp", {}).get("servers", {}).get(MCP_SERVER) or {})
+
+
+def _configured_db() -> Path:
+    """The DB the configured MCP server actually opens, so index/verify/doctor
+    operate on the same file serve will read."""
+    args = _server_entry().get("args") or []
+    for i, arg in enumerate(args):
+        if arg == "--db" and i + 1 < len(args):
+            return Path(args[i + 1])
+    return DEFAULT_DB
+
+
+def _configured_env() -> dict[str, str]:
+    raw = _server_entry().get("env") or {}
+    return {k: str(v) for k, v in raw.items()
+            if k.startswith("NXOPEN_MCP_")}
 
 
 def _write_zcode(cfg: dict) -> None:
@@ -123,6 +147,10 @@ def install(
             typer.echo(f"[skip] {dest} exists (use --force to overwrite)")
             continue
         if dest.exists():
+            if (dest / ".git").exists():
+                typer.echo(f"error: {dest} is a git repository; move it aside "
+                           f"instead of using --force", err=True)
+                raise typer.Exit(2)
             shutil.rmtree(dest)
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copytree(SKILL_SRC, dest)
@@ -131,7 +159,27 @@ def install(
         changed = _set_zcode_server()
         typer.echo(f"[{'ok' if changed else 'skip'}] ZCode MCP server "
                    f"'{MCP_SERVER}' -> {_mcp_command()}")
+    if not skill_only:
+        _print_host_snippet(names)
     typer.echo(f"skill version: {_bom().get('version', 'unknown')}")
+
+
+def _print_host_snippet(names: list[str]) -> None:
+    """Other hosts keep their MCP config outside ZCode; print the entry they
+    need instead of writing config files we don't own."""
+    exe = _mcp_command()
+    for name in names:
+        if name == "codex":
+            typer.echo("\nCodex (~/.codex/config.toml):\n"
+                       f'[mcp_servers.{MCP_SERVER}]\n'
+                       f'command = "{exe}"\n'
+                       f'args = ["serve", "--db", "{DEFAULT_DB}"]')
+        elif name == "claude":
+            typer.echo("\nClaude Code (.mcp.json):\n" + json.dumps({
+                "mcpServers": {MCP_SERVER: {
+                    "command": exe,
+                    "args": ["serve", "--db", str(DEFAULT_DB)]}}},
+                indent=2, ensure_ascii=False))
 
 
 @app.command()
@@ -160,13 +208,25 @@ def doctor() -> None:
     report(xml_dir is not None, "NXOpen XML docs",
            str(xml_dir) if xml_dir else
            f"no NXOpen*.xml under {nx_home}")
-    report(DEFAULT_DB.exists(), "API index", f"{DEFAULT_DB} "
-           f"({DEFAULT_DB.stat().st_size // (1 << 20)} MB)"
-           if DEFAULT_DB.exists() else str(DEFAULT_DB))
+    db_path = _configured_db()
+    report(db_path.exists(), "API index", f"{db_path} "
+           f"({db_path.stat().st_size // (1 << 20)} MB)"
+           if db_path.exists() else str(db_path))
     upstream_db = Path.home() / ".nxopen-mcp" / "index.db"
-    if not DEFAULT_DB.exists() and upstream_db.exists():
+    if not db_path.exists() and upstream_db.exists():
         typer.echo(f"[info] upstream index found at {upstream_db}; rebuild "
                    f"with `nxjt index`, or point the config there with --db")
+    backend = _configured_env().get("NXOPEN_MCP_EMBEDDER", "").lower()
+    if backend in ("remote", "llama", "llama-server", "llamacpp", "openai"):
+        required = ("NXOPEN_MCP_EMBED_URL", "NXOPEN_MCP_EMBED_MODEL",
+                    "NXOPEN_MCP_EMBED_API_KEY")
+        missing = [k for k in required if not _configured_env().get(k)]
+        report(not missing, "embedding service config",
+               ", ".join(missing) if missing else backend)
+    elif importlib.util.find_spec("FlagEmbedding") is None:
+        typer.echo("[warn] FlagEmbedding is not installed; local semantic "
+                   "search will fail. Install the [embed] extra or configure "
+                   "a remote service with `nxjt config embed --provider remote`.")
     exe = _mcp_command()
     report(Path(exe).exists() or shutil.which(exe) is not None,
            "nxopen-mcp-enhanced", exe)
@@ -188,17 +248,90 @@ def doctor() -> None:
 @app.command()
 def index(
     nx_path: str = typer.Option("", help="NX install root (default NX_HOME)"),
-    db: str = typer.Option("", help="index path (default ~/.nxopen-mcp-enhanced)"),
+    db: str = typer.Option("", help="index path (default from MCP config)"),
     workers: int = typer.Option(1, help="parallel embedding workers"),
 ) -> None:
     """Build the NXOpen API index with the bundled MCP."""
     root = nx_path or os.environ.get("NX_HOME", str(DEFAULT_NX))
-    cmd = [_mcp_command(), "index", "--nx-path", root]
-    if db:
-        cmd += ["--db", db]
+    db_path = Path(db) if db else _configured_db()
+    cmd = [_mcp_command(), "index", "--nx-path", root, "--db", str(db_path)]
     if workers > 1:
         cmd += ["--workers", str(workers)]
-    raise typer.Exit(subprocess.run(cmd).returncode)
+    # serve gets its embedding settings from the MCP config; index runs as a
+    # child process, so pass the same NXOPEN_* variables explicitly or a
+    # remote-mode user would silently build with the local model.
+    env = dict(os.environ)
+    env.update(_configured_env())
+    raise typer.Exit(subprocess.run(cmd, env=env).returncode)
+
+
+def _mcp_smoke(db: Path) -> tuple[bool, str]:
+    """Start the configured MCP server and call get_member('Tag') over stdio.
+
+    `--help` only proves the executable exists; this proves the configured
+    index opens, the handshake completes and a tool answers. stdin stays open
+    until the reply arrives: closing it early can end the server loop before
+    the tool call is served.
+    """
+    try:
+        proc = subprocess.Popen(
+            [_mcp_command(), "serve", "--db", str(db)],
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, text=True, encoding="utf-8",
+            errors="replace", bufsize=1,
+            env={**os.environ, **_configured_env()})
+    except OSError as exc:
+        return False, str(exc)
+    lines: queue.Queue[str] = queue.Queue()
+
+    def _reader() -> None:
+        for line in proc.stdout:
+            lines.put(line)
+
+    threading.Thread(target=_reader, daemon=True).start()
+
+    def send(msg: dict) -> None:
+        proc.stdin.write(json.dumps(msg) + "\n")
+        proc.stdin.flush()
+
+    def wait_for(mid: int, timeout: float) -> dict:
+        deadline = time.monotonic() + timeout
+        while True:
+            remain = deadline - time.monotonic()
+            if remain <= 0:
+                raise TimeoutError(f"no reply for request {mid}")
+            line = lines.get(timeout=remain)
+            try:
+                msg = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if msg.get("id") == mid:
+                return msg
+
+    try:
+        send({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {
+            "protocolVersion": "2024-11-05", "capabilities": {},
+            "clientInfo": {"name": "nxjt-verify", "version": "0"}}})
+        wait_for(1, 20)
+        send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+        send({"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {
+            "name": "get_member", "arguments": {"member_name": "Tag"}}})
+        result = wait_for(2, 40).get("result") or {}
+    except (TimeoutError, queue.Empty, OSError, ValueError) as exc:
+        return False, str(exc)
+    finally:
+        try:
+            proc.stdin.close()
+        except OSError:
+            pass
+        try:
+            proc.wait(timeout=5)
+        except subprocess.TimeoutExpired:
+            proc.kill()
+    text = "\n".join(c.get("text", "") for c in result.get("content") or [])
+    if result.get("isError") or not text.startswith("### "):
+        return False, text.splitlines()[0][:120] if text else "empty result"
+    return True, text.splitlines()[0][:80]
 
 
 @app.command()
@@ -219,13 +352,18 @@ def verify(
                    err=True)
         raise typer.Exit(2)
     check = root / "scripts" / "check_repo.py"
-    subprocess.run([sys.executable, str(check), str(root)], check=False)
-    smoke = subprocess.run([_mcp_command(), "--help"],
-                           capture_output=True, text=True)
-    typer.echo(f"[{'ok' if smoke.returncode == 0 else 'fail'}] MCP smoke")
+    check_rc = subprocess.run([sys.executable, str(check), str(root)],
+                              check=False).returncode
+    db = _configured_db()
+    ok, detail = _mcp_smoke(db)
+    typer.echo(f"[{'ok' if ok else 'fail'}] MCP smoke ({db}): {detail}")
     if nx:
         suite = root / "scripts" / "tests" / "RUN_TESTS.bat"
-        raise typer.Exit(subprocess.run([str(suite)], cwd=str(suite.parent)).returncode)
+        suite_rc = subprocess.run([str(suite)], cwd=str(suite.parent)).returncode
+        if suite_rc:
+            raise typer.Exit(suite_rc)
+    if check_rc or not ok:
+        raise typer.Exit(1)
 
 
 @config_app.command("embed")

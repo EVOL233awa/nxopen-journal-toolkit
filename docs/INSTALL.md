@@ -20,7 +20,7 @@ nxjt doctor
 `install` 会把技能复制到 `~/.codex/skills/nxopen-journal`（ZCode/Codex 共用），
 并把 `nxopen` server 写入 `~/.zcode/cli/config.json`。写前自动备份，内容不变时跳过。
 
-其他宿主：
+其他宿主（只复制技能，并打印对应的 MCP 配置片段）：
 
 ```bash
 nxjt install --target codex
@@ -40,9 +40,13 @@ nxjt config embed --provider remote
 会依次询问 base URL、嵌入模型、API key、rerank URL/模型，并写入 ZCode MCP 的 env。
 切回本地：`nxjt config embed --provider local`。
 
+`nxjt index` 写入 MCP 配置里 `--db` 指向的同一个文件，并沿用配置中的
+`NXOPEN_MCP_*` 环境变量——`nxjt config embed --provider remote` 之后直接建索引即可，
+不会退回本地模型。
+
 ## 复用已有索引
 
-若已有上游 `nxopen-mcp` 的索引，可让配置直接指向它：
+若已有上游 `nxopen-mcp` 的索引，让配置直接指向它，`nxjt index` 会写同一路径：
 
 ```bash
 nxjt index --db C:\Users\<you>\.nxopen-mcp\index.db
@@ -54,7 +58,10 @@ nxjt index --db C:\Users\<you>\.nxopen-mcp\index.db
 ## 自检
 
 ```bash
-nxjt doctor                 # NX、XML、索引、MCP、BOM
-nxjt verify                 # 已安装技能跑 check_repo.py + MCP 冒烟
+nxjt doctor                 # NX、XML、配置的索引、嵌入后端、MCP、BOM
+nxjt verify                 # check_repo.py + 真实 MCP 冒烟（启动 server 调 get_member）
 nxjt verify --nx            # 追加 NX 回归套件（需真实 NX，耗时长）
 ```
+
+`verify` 任一项失败即返回非零；冒烟使用配置里的 `--db`，索引缺失或没有 `Tag`
+成员都会判失败，不再只看 `--help`。

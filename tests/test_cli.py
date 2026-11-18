@@ -86,3 +86,77 @@ def test_doctor_reports_missing_nx(sandbox, monkeypatch, tmp_path):
 def test_verify_without_install_fails(sandbox):
     result = runner.invoke(cli.app, ["verify"])
     assert result.exit_code == 2
+
+
+def test_install_prints_host_snippet_without_writing_config(sandbox):
+    result = runner.invoke(cli.app, ["install", "--target", "codex"])
+    assert result.exit_code == 0, result.output
+    assert "mcp_servers.nxopen" in result.output
+    assert not cli.ZCODE_CONFIG.exists()
+
+
+def test_install_force_refuses_git_repository(sandbox):
+    dest = sandbox["zcode"] / cli.SKILL_NAME
+    (dest / ".git").mkdir(parents=True)
+    result = runner.invoke(cli.app, ["install", "--target", "zcode", "--force"])
+    assert result.exit_code == 2
+    assert (dest / ".git").exists()
+
+
+def test_verify_fails_when_smoke_fails(sandbox, monkeypatch):
+    install = runner.invoke(cli.app, ["install", "--target", "zcode",
+                                      "--skill-only"])
+    assert install.exit_code == 0, install.output
+    dest = sandbox["zcode"] / cli.SKILL_NAME
+
+    class Ok:
+        returncode = 0
+
+    monkeypatch.setattr(cli.subprocess, "run", lambda *a, **k: Ok())
+    monkeypatch.setattr(cli, "_mcp_smoke", lambda db: (False, "boom"))
+    result = runner.invoke(cli.app, ["verify", "--skill-dir", str(dest)])
+    assert result.exit_code == 1
+    assert "[fail] MCP smoke" in result.output
+
+
+def test_verify_fails_when_check_repo_fails(sandbox, monkeypatch):
+    install = runner.invoke(cli.app, ["install", "--target", "zcode",
+                                      "--skill-only"])
+    assert install.exit_code == 0, install.output
+    dest = sandbox["zcode"] / cli.SKILL_NAME
+
+    class Failed:
+        returncode = 1
+
+    monkeypatch.setattr(cli.subprocess, "run", lambda *a, **k: Failed())
+    monkeypatch.setattr(cli, "_mcp_smoke", lambda db: (True, "ok"))
+    result = runner.invoke(cli.app, ["verify", "--skill-dir", str(dest)])
+    assert result.exit_code == 1
+
+
+def test_index_uses_configured_db_and_embedding_env(sandbox, monkeypatch):
+    cli.ZCODE_CONFIG.parent.mkdir(parents=True)
+    cli.ZCODE_CONFIG.write_text(json.dumps({
+        "mcp": {"servers": {"nxopen": {
+            "command": "x",
+            "args": ["serve", "--db", str(sandbox["zcode"] / "custom.db")],
+            "env": {"NXOPEN_MCP_EMBEDDER": "remote",
+                    "NXOPEN_MCP_EMBED_URL": "https://example.test"},
+        }}}
+    }), encoding="utf-8")
+    captured = {}
+
+    class Ok:
+        returncode = 0
+
+    def fake_run(cmd, **kwargs):
+        captured["cmd"] = cmd
+        captured["env"] = kwargs.get("env") or {}
+        return Ok()
+
+    monkeypatch.setattr(cli.subprocess, "run", fake_run)
+    result = runner.invoke(cli.app, ["index", "--nx-path", "D:/NX"])
+    assert result.exit_code == 0, result.output
+    assert str(sandbox["zcode"] / "custom.db") in captured["cmd"]
+    assert captured["env"]["NXOPEN_MCP_EMBEDDER"] == "remote"
+    assert captured["env"]["NXOPEN_MCP_EMBED_URL"] == "https://example.test"
