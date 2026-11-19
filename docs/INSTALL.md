@@ -32,10 +32,8 @@ nxjt install --target claude
 
 ## 嵌入后端
 
-默认本地 BGE-M3：先安装 `pip install "nxopen-mcp-enhanced[embed]"`，首次建索引/查询会下载
-约 2 GB 模型，建索引可能需要数小时。未安装时 `nxjt doctor` 会给 warn，`nxjt index` 会失败。
-
-远程模式（OpenAI 兼容）：
+推荐远程模式：硅基流动把 `BAAI/bge-m3` 与 `BAAI/bge-reranker-v2-m3` 标为免费模型，与工具包
+默认模型相同，不下载任何模型。
 
 ```bash
 nxjt config embed --provider remote
@@ -44,9 +42,12 @@ nxjt config embed --provider remote
 会依次询问 base URL、嵌入模型、API key、rerank URL/模型，并写入 ZCode MCP 的 env。
 切回本地：`nxjt config embed --provider local`。
 
+本地 BGE-M3 是离线备选：先装 `pip install "nxopen-mcp-enhanced[embed]"`，首次建索引/查询会
+下载约 2 GB 模型，建索引可能需要数小时。两条路都没配时 `nxjt doctor` 给 warn，`nxjt index` 失败。
+
 `nxjt index` 写入 MCP 配置里 `--db` 指向的同一个文件，并沿用配置中的
 `NXOPEN_MCP_*` 环境变量——`nxjt config embed --provider remote` 之后直接建索引即可，
-不会退回本地模型。
+不会退回本地模型；已有索引无需重建。
 
 ## 复用已有索引
 

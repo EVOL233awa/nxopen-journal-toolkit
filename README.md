@@ -78,7 +78,7 @@ MCP 配置，避免“技能能跑但检索服务没起来”的半安装状态�
 | NX | Siemens NX 12（当前验证版本 12.0.0.27）及 NXOpen 自动化接口 |
 | `NX_HOME` | 指向 NX 安装根，默认 `D:\UG-NX12` |
 | Python | 宿主 3.11+（`nxjt` 与 MCP）；NX journal 由 NX 内嵌 Python 3.6.1 执行 |
-| 磁盘 | 技能约 4 MB；索引约 0.4 GB；本地嵌入模型另需约 2 GB |
+| 磁盘 | 技能约 4 MB；索引约 0.4 GB；只有走本地嵌入路线才另需约 2 GB 模型 |
 
 ### 从源码安装（当前状态）
 
@@ -101,15 +101,18 @@ pip install nxopen-journal-toolkit
 
 ### 选择嵌入后端
 
-工具包默认依赖不强制安装 2 GB 的本地模型，建索引前先选一条：
+工具包默认依赖不强制安装本地模型，建索引前先选一条：
 
 ```bash
-# 本地 BGE-M3（默认路线；首次使用下载约 2 GB）
-pip install "nxopen-mcp-enhanced[embed]"
-
-# 或 OpenAI 兼容远程服务（不装本地模型；装完本包后配置）
+# 推荐：硅基流动免费模型（BAAI/bge-m3 + BAAI/bge-reranker-v2-m3，不下载模型）
 nxjt config embed --provider remote
+
+# 或本地 BGE-M3（离线路线；首次使用下载约 2 GB）
+pip install "nxopen-mcp-enhanced[embed]"
 ```
+
+远程路线不装 `[embed]`；免费档有固定 Rate Limits、需实名认证，`Pro/` 前缀同名模型收费。
+`nxjt config embed --provider remote` 会同时打开重排（Recall@5 57.53% → 69.86%，73 条 golden）。
 
 未安装 FlagEmbedding 且未配置远程服务时，`nxjt index` 会失败，`nxjt doctor` 会给出 warn。
 `[reflect]`（pythonnet）只影响 `get_class` 是否显示继承成员，按需安装。
@@ -161,9 +164,10 @@ nxjt verify --nx  # 追加 NX 回归套件（51 个带判定的用例，耗时�
 `verify` 任一项失败即非零退出；冒烟会用配置里的 `--db` 真正启动 MCP 并查一个成员，不是只看
 `--help`。
 
-### 远程嵌入与重排（可选）
+### 远程嵌入与重排（推荐）
 
-默认本地 BGE-M3。若已有 OpenAI 兼容的嵌入/重排服务（例如硅基流动）：
+默认本地 BGE-M3 离线可用；推荐接入硅基流动的免费模型 `BAAI/bge-m3` 与
+`BAAI/bge-reranker-v2-m3`（与本项目默认模型相同，检索行为不变、不下载模型）：
 
 ```bash
 nxjt config embed --provider remote
@@ -174,7 +178,7 @@ nxjt config embed --provider remote
 
 远程模式不需要下载 2 GB 模型，但查询依赖网络：嵌入不可达时，整串名（含 `Part`、`Session`
 这类单字名与全限定名）和查询中的驼峰标识符退回本地精确匹配；重排不可达时等 15 s 超时后
-回退到未重排顺序。
+回退到未重排顺序。已建索引无需重建（本地与云端同权重向量的余弦 0.99988–0.99994）。
 
 ## 命令
 
