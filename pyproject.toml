@@ -1,13 +1,13 @@
 [project]
 name = "nxopen-journal-toolkit"
-version = "0.1.0"
+version = "1.0.0"
 description = "One-command installer for the nxopen-journal skill and nxopen-mcp-enhanced"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["nxopen", "siemens-nx", "journal", "mcp", "nx12"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
