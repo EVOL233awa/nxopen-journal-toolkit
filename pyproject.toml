@@ -16,7 +16,7 @@ classifiers = [
 requires-python = ">=3.11"
 dependencies = [
     "nxopen-mcp-enhanced>=1.0,<2.0",
-    "typer>=0.12",
+    "typer>=0.16",
 ]
 
 [project.scripts]

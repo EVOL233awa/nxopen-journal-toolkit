@@ -31,6 +31,25 @@ def test_bom_loaded():
     assert bom["file_count"] > 100
 
 
+def test_mcp_command_prefers_configured_executable(monkeypatch, tmp_path):
+    exe = tmp_path / "nxopen-mcp-enhanced.exe"
+    exe.write_text("", encoding="utf-8")
+    monkeypatch.setattr(cli, "_server_entry", lambda: {"command": str(exe)})
+    monkeypatch.setattr(cli.shutil, "which",
+                        lambda name: str(tmp_path / "path" / name))
+    assert cli._mcp_command() == str(exe)
+
+
+def test_mcp_command_ignores_missing_configured_executable(monkeypatch,
+                                                           tmp_path):
+    monkeypatch.setattr(cli, "_server_entry",
+                        lambda: {"command": str(tmp_path / "missing.exe")})
+    found = str(tmp_path / "found" / "nxopen-mcp-enhanced")
+    monkeypatch.setattr(cli.shutil, "which",
+                        lambda name: found if name == cli.MCP_EXE else None)
+    assert cli._mcp_command() == found
+
+
 def test_install_and_idempotent(sandbox):
     first = runner.invoke(cli.app, ["install", "--target", "zcode"])
     assert first.exit_code == 0, first.output

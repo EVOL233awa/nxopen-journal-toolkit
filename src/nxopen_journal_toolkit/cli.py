@@ -49,6 +49,16 @@ def _bom() -> dict:
 
 
 def _mcp_command() -> str:
+    """Resolve the MCP executable the installed config points at.
+
+    A configured absolute command wins over PATH: ZCode may run the server from
+    a venv that is not on PATH, and `nxjt index`/`verify` must use the same
+    executable `serve` will read. A sibling of sys.executable only helps
+    pipx/venv installs of this package.
+    """
+    configured = str(_server_entry().get("command") or "")
+    if configured and (Path(configured).exists() or shutil.which(configured)):
+        return configured
     found = shutil.which(MCP_EXE)
     if found:
         return found
