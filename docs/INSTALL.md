@@ -51,14 +51,15 @@ nxjt config embed --provider remote
 
 ## 复用已有索引
 
-若已有上游 `nxopen-mcp` 的索引，让配置直接指向它，`nxjt index` 会写同一路径：
+若本机已有上游 `nxopen-mcp` 的索引，让配置直接指向它，`nxjt index` 会写同一路径：
 
 ```bash
 nxjt index --db C:\Users\<you>\.nxopen-mcp\index.db
 ```
 
 或在 ZCode 的 `nxopen` server `args` 里把 `--db` 改成该路径。两者 schema 相同，
-但 enhanced 不会修改索引结构。
+但 enhanced 不会修改索引结构。复用的前提是嵌入模型一致——索引里的向量由建索引时的模型产生，
+换模型要重建。
 
 ## 自检
 
