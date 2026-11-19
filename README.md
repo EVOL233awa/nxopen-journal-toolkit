@@ -99,6 +99,21 @@ python -m pip install -e .
 pip install nxopen-journal-toolkit
 ```
 
+### 选择嵌入后端
+
+工具包默认依赖不强制安装 2 GB 的本地模型，建索引前先选一条：
+
+```bash
+# 本地 BGE-M3（默认路线；首次使用下载约 2 GB）
+pip install "nxopen-mcp-enhanced[embed]"
+
+# 或 OpenAI 兼容远程服务（不装本地模型；装完本包后配置）
+nxjt config embed --provider remote
+```
+
+未安装 FlagEmbedding 且未配置远程服务时，`nxjt index` 会失败，`nxjt doctor` 会给出 warn。
+`[reflect]`（pythonnet）只影响 `get_class` 是否显示继承成员，按需安装。
+
 ### 一键安装技能与 MCP
 
 ```bash

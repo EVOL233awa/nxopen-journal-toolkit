@@ -32,7 +32,8 @@ nxjt install --target claude
 
 ## 嵌入后端
 
-默认本地 BGE-M3：首次建索引/查询会下载约 2 GB 模型，建索引可能需要数小时。
+默认本地 BGE-M3：先安装 `pip install "nxopen-mcp-enhanced[embed]"`，首次建索引/查询会下载
+约 2 GB 模型，建索引可能需要数小时。未安装时 `nxjt doctor` 会给 warn，`nxjt index` 会失败。
 
 远程模式（OpenAI 兼容）：
 
