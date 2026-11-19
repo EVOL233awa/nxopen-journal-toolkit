@@ -221,7 +221,7 @@ zcode, deepseek-v4.1flash1017(max), toolkit1.0.0版本
 ```
 
 即 ZCode + DeepSeek-V4.1-Flash-1017（max）+ nxopen-journal-toolkit 1.0.0；NX 12.0.0.27，
-Windows 11，宿主 Python 3.11.0，NX 内嵌 Python 3.6.1。三维图由 STL 在 NX 外离线渲染，
+Windows 11，宿主 Python 3.12.0，NX 内嵌 Python 3.6.1。三维图由 STL 在 NX 外离线渲染，
 工程图为 NX Drafting 直接导出的 PDF 转图，有限元/运动/机构图为求解数据或闭式解在宿主绘制。
 
 | 三维建模：轴承支座（160×100×14，凸台 Ø64、Ø40 通孔、双筋、4×Ø10 沉孔 Ø18×6） | 装配：曲柄摇杆总成（7 类 18 件） |
