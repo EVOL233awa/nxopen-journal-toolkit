@@ -4,7 +4,7 @@
 
 | 组件 | 版本 | 来源 |
 |---|---|---|
-| skill `nxopen-journal` | 1.6.0 | 技能仓库 commit `2e8ac5f`，114 文件 |
+| skill `nxopen-journal` | 1.7.0 | 技能仓库 commit `2fa3510`，115 文件 |
 | `nxopen-mcp-enhanced` | 1.0.0 | fork 自 `mingfeng6684/nxopen-mcp` 0.2.0 |
 
 技能快照的逐文件 SHA-256 记录在

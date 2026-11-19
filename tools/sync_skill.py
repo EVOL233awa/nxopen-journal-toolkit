@@ -86,7 +86,7 @@ def write_manifest(source: Path, ref: str, files: dict[str, str]) -> dict:
     manifest = {
         "skill": {
             "version": version,
-            "commit": git(source, "rev-parse", ref),
+            "commit": git(source, "rev-parse", f"{ref}^{{commit}}"),
             "file_count": len(files),
             "tree_sha256": tree_hash(files),
             "files": files,

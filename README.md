@@ -43,7 +43,7 @@
 
 技能还带三样支撑：`scripts/check_journal.py`（按 NX 内嵌 Python 3.6 语法与已固化坑位做静态检查）、
 `scripts/nxlib/`（15 个模块的用例标准层，回归用例直接 import）、`scripts/render/`（STL 离线渲染、
-PDF 栅格化、裁边与比例尺）。技能仓库另有 50 个带判定的 NX 回归用例。
+PDF 栅格化、裁边与比例尺）。技能仓库另有 51 个带判定的 NX 回归用例。
 
 ### MCP：nxopen-mcp-enhanced
 
@@ -155,7 +155,7 @@ nxjt index --db C:\Users\<you>\.nxopen-mcp\index.db
 ```bash
 nxjt doctor     # NX_HOME、run_journal.exe、managed XML、索引、MCP 配置、组件版本
 nxjt verify     # check_repo.py + 真实 MCP stdio 冒烟（启动 server 调 get_member）
-nxjt verify --nx  # 追加 NX 回归套件（50 个带判定的用例，耗时长）
+nxjt verify --nx  # 追加 NX 回归套件（51 个带判定的用例，耗时长）
 ```
 
 `verify` 任一项失败即非零退出；冒烟会用配置里的 `--db` 真正启动 MCP 并查一个成员，不是只看
@@ -232,14 +232,15 @@ Windows 11，宿主 Python 3.12.0，NX 内嵌 Python 3.6.1。三维图由 STL �
 渲染，带 50 mm 比例尺。装配件为底板 200×140×12，杆长 AB=30、BC=90、CD=80、AD=120 的曲柄
 摇杆机构，含 4 根销轴、4 个轴套与 6 个端盖，共 18 个组件实例。
 
-| Drafting：A3 零件图（三视图、12 条尺寸、Ø44/Ø20/2×Ø18） | 国标出图：A3 装配图（图框、标题栏、7 项明细栏、技术要求） |
+| Drafting：A3 零件图（三视图、12 条尺寸、Ø44/Ø20/2×Ø18） | 国标装配图：A3（三视图、A-A 剖视、7 个序号球、6 条装配尺寸、完整标题栏） |
 |---|---|
 | <img src="docs/images/drafting.png" width="430"> | <img src="docs/images/gb-drawing.png" width="430"> |
 
 左图为 160×100×16 安装板，Ø44×8 凸台、Ø20 通孔、4×Ø9 角孔与 2×Ø18 沉孔，单实体 19 面；
 三视图、尺寸道位、中心线与 PDF 由 `gb_drawing` 生成，导出后用 PDF 文本层核对过 160/120/100/
-60/50/16/8/80/44/20/18/9 全部数值。右图为第一角 A3 装配图，比例 1:1.5，明细栏 7 项与 18 件
-组件逐项对应，技术要求置于明细栏上方。
+60/50/16/8/80/44/20/18/9 全部数值。右图为第一角 A3 装配图，比例 1:2：三视图 + A-A 剖视（10 个
+剖切实体、剖面线 10 处），序号 1–7 与明细栏 7 项对应，6 条装配尺寸（200/140/46/164/Ø9/Ø16 H7/h6），
+180×56 完整标题栏 15 字段与 7 项明细栏，对中符号与技术要求齐全，`audit_gb_assembly(strict=True)` pass。
 
 | 有限元：SOL 101 悬臂梁（200×20×20，2.5 mm CTETRA(10)，40199 节点） |
 |---|
@@ -335,7 +336,7 @@ nxopen-journal-toolkit/
 | 组件 | 版本 | 来源 |
 |---|---|---|
 | `nxopen-journal-toolkit` | 1.0.0 | 本仓库 |
-| `nxopen-journal` skill | 1.6.0 | 技能仓库 `2e8ac5f`，114 文件 |
+| `nxopen-journal` skill | 1.7.0 | 技能仓库 `2fa3510`，115 文件 |
 | `nxopen-mcp-enhanced` | 1.0.0 | fork 自 `mingfeng6684/nxopen-mcp` 0.2.0 |
 | NX | 12.0.0.27 | 已验证；NX 2506 未验证 |
 | Python | 宿主 3.11+ / NX 3.6.1 | 两者不可互换 |
