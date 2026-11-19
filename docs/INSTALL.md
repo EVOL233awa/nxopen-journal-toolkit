@@ -10,8 +10,11 @@
 
 ## 安装
 
+当前未发布到 PyPI，先从源码安装：
+
 ```bash
-pip install nxopen-journal-toolkit
+cd nxopen-journal-toolkit
+pip install -e .
 nxjt install --target zcode     # 复制技能 + 写 ZCode MCP 配置
 nxjt index                      # 用 NX_HOME 建索引
 nxjt doctor
