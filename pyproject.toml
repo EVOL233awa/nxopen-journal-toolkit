@@ -1,6 +1,6 @@
 [project]
 name = "nxopen-journal-toolkit"
-version = "1.0.0"
+version = "1.0.1"
 description = "One-command installer for the nxopen-journal skill and nxopen-mcp-enhanced"
 readme = "README.md"
 license = "MIT"
