@@ -1,9 +1,9 @@
 {
   "skill": {
     "version": "v1.7.0",
-    "commit": "bf83452f36ff2975c8ffd47065875820e0184e28",
+    "commit": "376041e3beef35ab1331ab3b6be830d2f86c8245",
     "file_count": 115,
-    "tree_sha256": "e2da05106382d174a6541a39e5fa16c2e5a748e051793e022008f207aaeae95b",
+    "tree_sha256": "e6cbb23aaa6e6cc0ec80751077e8490bf2bfe6acb0e87c869abf89d7826ac11e",
     "files": {
       ".gitattributes": "60fbdf48b53ac9d359360a35c7cd432fc063d2d3626b7fd070eb98ab1542aaef",
       "agents/openai.yaml": "469b0e32a5d761927303429cdd9100eff600c56345d67fbb9589d63af5ebf0e6",
@@ -15,8 +15,8 @@
       "docs/wiki/05-boundaries.md": "df6c482cfb654dd3d3cf8b1dec6cdbbaaa11d94e31f550c91595e3188f51396a",
       "docs/wiki/README.md": "d118d19d6180b8207af9d45dc6d2156274b8206dacc8fc6d45920772f1a60b24",
       "LICENSE": "bc8b379fdfd394fa1764329c1f13984ef368bec44fa2d68a243c3f3cc452786e",
-      "README.en.md": "adf4edf16fb3c9e189577fd14aa49d79b49b6a8850eda196ae221b788bbb247d",
-      "README.md": "3fc0156519184c99c2f3ede190a297a46034a48b4bfc3dc4462b9fe70fec2ed6",
+      "README.en.md": "d5807c6d76780cb6d640442ed996b2f1fe1437e989be34ea3cdc52d021a7326f",
+      "README.md": "51b2a5b7d552307d9979566e5f4e52bcdb5337a469ae588f28c01303dd4744c2",
       "references/assembly.md": "c7c749253c4938e2b2c9df8dab93224a2d789c0334fd94372e5a83128e718036",
       "references/drafting-annotation.md": "b5291430022b90cae58c6ecb8b26979401fb2673cf9f8010bf5253fdd1302660",
       "references/drafting.md": "31eab501e5ea279e4ad2636b3d013bcda00c61544530f17ae39a7bd877dd9971",

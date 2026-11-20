@@ -310,7 +310,7 @@ nxopen-journal-toolkit/
 | 组件 | 版本 | 来源 |
 |---|---|---|
 | `nxopen-journal-toolkit` | 1.0.1 | 本仓库 |
-| `nxopen-journal` skill | 1.7.0 | 技能仓库 `bf83452`，115 文件 |
+| `nxopen-journal` skill | 1.7.0 | 技能仓库 `376041e`，115 文件 |
 | `nxopen-mcp-enhanced` | 1.0.0 | fork 自 `mingfeng6684/nxopen-mcp` 0.2.0 |
 | NX | 12.0.0.27 | 已验证；NX 2506 未验证 |
 | Python | 宿主 3.11+ / NX 3.6.1 | 两者不可互换 |
