@@ -1,13 +1,13 @@
 {
   "skill": {
     "version": "v1.7.0",
-    "commit": "2fa3510d33324a24588d5a9361f405e3a97335e7",
+    "commit": "bf83452f36ff2975c8ffd47065875820e0184e28",
     "file_count": 115,
-    "tree_sha256": "54be7c0a5c9443652a8886b7ea7c4287dc716b59e7a110c1072f73561e276abb",
+    "tree_sha256": "e2da05106382d174a6541a39e5fa16c2e5a748e051793e022008f207aaeae95b",
     "files": {
       ".gitattributes": "60fbdf48b53ac9d359360a35c7cd432fc063d2d3626b7fd070eb98ab1542aaef",
       "agents/openai.yaml": "469b0e32a5d761927303429cdd9100eff600c56345d67fbb9589d63af5ebf0e6",
-      "CHANGELOG.md": "d6110bb45e72f50d338cc544c7269148c2f271a83f1e1a73af1ddd4cce9c183f",
+      "CHANGELOG.md": "a7e79988334e3ccb5c76e2bbe7f50e7e0512b888786dc42f553812e1b5e3c59f",
       "docs/wiki/01-architecture.md": "0359f1b51db0cb040736a613ab2e71619377469c37ff84ae06e72425a839bd78",
       "docs/wiki/02-execution-flow.md": "e6e11717751c200624cda55a0d8f150f1b4604edd15513adf3f462e3acd9fdfc",
       "docs/wiki/03-modules.md": "109dee08efd065c5d8340a11166407ccc64d78e1d02792e83fb98aad636fc2a6",
@@ -15,8 +15,8 @@
       "docs/wiki/05-boundaries.md": "df6c482cfb654dd3d3cf8b1dec6cdbbaaa11d94e31f550c91595e3188f51396a",
       "docs/wiki/README.md": "d118d19d6180b8207af9d45dc6d2156274b8206dacc8fc6d45920772f1a60b24",
       "LICENSE": "bc8b379fdfd394fa1764329c1f13984ef368bec44fa2d68a243c3f3cc452786e",
-      "README.en.md": "9e730dc9c7e7829e752a3a569c988e60e624c2944dfbef78a9e81e5b6b3db6b9",
-      "README.md": "a81c9bc74fc7811688d04f06770db963c1495876b3e997c101da06a64bf69473",
+      "README.en.md": "adf4edf16fb3c9e189577fd14aa49d79b49b6a8850eda196ae221b788bbb247d",
+      "README.md": "3fc0156519184c99c2f3ede190a297a46034a48b4bfc3dc4462b9fe70fec2ed6",
       "references/assembly.md": "c7c749253c4938e2b2c9df8dab93224a2d789c0334fd94372e5a83128e718036",
       "references/drafting-annotation.md": "b5291430022b90cae58c6ecb8b26979401fb2673cf9f8010bf5253fdd1302660",
       "references/drafting.md": "31eab501e5ea279e4ad2636b3d013bcda00c61544530f17ae39a7bd877dd9971",

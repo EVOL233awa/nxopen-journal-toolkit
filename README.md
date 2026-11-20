@@ -30,36 +30,17 @@
 
 ### 技能：nxopen-journal
 
-技能覆盖 NX 自动化的六个域，工作方式统一为“agent 写 journal → 批处理执行 → 核对产物”：
-
-| 域 | 能力 |
-|---|---|
-| 三维建模 | 草图与驱动尺寸、拉伸/旋转/扫掠、布尔、抽壳与拔模、九类阵列、孔包、圆角与滚球角面、图层 |
-| 装配 | 组件加载与定位约束、可拖动机构、转动副、干涉检查、装配图三视图 |
-| Drafting / 国标出图 | 三视图与投影视图、局部放大、剖视（阶梯/半剖/旋转）、尺寸与中心线、A3/A4 图框、标题栏、明细栏、技术要求、PDF |
-| 有限元 | NX Nastran SOL 101 静力、2D 壳网格、边界条件描述符、结果采样与手算对照 |
-| 运动仿真 | 连杆、转动副、滑动副、齿轮连接器、驱动、求解、帧结果与速度/加速度读取 |
-| 逆向重建 | 面表与结构目录、按测量截面重建、草图优先、双向精度验收、可编辑性检查 |
-
-技能还带三样支撑：`scripts/check_journal.py`（按 NX 内嵌 Python 3.6 语法与已固化坑位做静态检查）、
-`scripts/nxlib/`（15 个模块的用例标准层，回归用例直接 import）、`scripts/render/`（STL 离线渲染、
-PDF 栅格化、裁边与比例尺）。技能仓库另有 51 个带判定的 NX 回归用例。
+覆盖六个域：三维建模、装配、Drafting/国标出图、有限元、运动仿真、逆向重建。工作方式统一为
+“agent 写 journal → 批处理执行 → 核对产物”，并带静态检查 `scripts/check_journal.py`、15 个模块的
+用例标准层 `scripts/nxlib/`、离线出图链 `scripts/render/` 与 51 个带判定的 NX 回归用例。
+各域的覆盖范围与已知边界见[技能 README](https://github.com/EVOL233awa/nxopen-journal)。
 
 ### MCP：nxopen-mcp-enhanced
 
-上游是 [`mingfeng6684/nxopen-mcp`](https://github.com/mingfeng6684/nxopen-mcp)。本工具包使用增强
-fork，四个工具：
-
-| 工具 | 用途 |
-|---|---|
-| `search_api` | 混合检索（dense + 精确名通道）：不知道类名时用自然语言或中英混写查询 |
-| `get_class` | 列出一个类的全部成员（含继承链），分页 `offset` / `limit`，默认 200 |
-| `get_member` | 单个成员的精确签名、参数、返回类型、NX 版本与 license |
-| `find_builder` | 由 CAM 工序名找 `*Builder` 类、创建方法与 Builder→Commit→Destroy 骨架 |
-
-相对上游的改动：OpenAI 兼容远程嵌入、可选 `/v1/rerank` 重排、精确名离线回退、15 s 重排超时、
-唯一名跳过重排，以及 `get_class` 分页。包名、模块名、命令与数据目录均已命名空间化，可与上游共存。
-细节见 fork 仓库的 [README](https://github.com/EVOL233awa/nxopen-mcp-enhanced)。
+四个工具：`search_api`（混合语义检索）、`get_class`（成员与继承链，分页）、`get_member`（精确
+签名与参数）、`find_builder`（CAM 工序 → Builder 骨架）。本工具包使用增强 fork，相对上游增加了
+OpenAI 兼容远程嵌入、可选重排、精确名离线回退与 `get_class` 分页；细节见
+[fork README](https://github.com/EVOL233awa/nxopen-mcp-enhanced)。
 
 ### 为什么建议一起装
 
@@ -117,6 +98,11 @@ pip install "nxopen-mcp-enhanced[embed]"
 未安装 FlagEmbedding 且未配置远程服务时，`nxjt index` 会失败，`nxjt doctor` 会给出 warn。
 `[reflect]`（pythonnet）只影响 `get_class` 是否显示继承成员，按需安装。
 
+`nxjt config embed --provider remote` 会交互写入 base URL、嵌入模型、API key、rerank URL 与模型，
+后续 `nxjt index` 沿用同一组 `NXOPEN_MCP_*` 环境变量；切回本地用 `--provider local`。已建索引
+无需重建（本地与云端同权重向量的余弦 0.99988–0.99994）。远程模式查询依赖网络：嵌入不可达时，
+整串名与查询中的驼峰标识符退回本地精确匹配；重排不可达时等 15 s 超时后回退到未重排顺序。
+
 ### 一键安装技能与 MCP
 
 ```bash
@@ -163,22 +149,6 @@ nxjt verify --nx  # 追加 NX 回归套件（51 个带判定的用例，耗时�
 
 `verify` 任一项失败即非零退出；冒烟会用配置里的 `--db` 真正启动 MCP 并查一个成员，不是只看
 `--help`。
-
-### 远程嵌入与重排（推荐）
-
-默认本地 BGE-M3 离线可用；推荐接入硅基流动的免费模型 `BAAI/bge-m3` 与
-`BAAI/bge-reranker-v2-m3`（与本项目默认模型相同，检索行为不变、不下载模型）：
-
-```bash
-nxjt config embed --provider remote
-```
-
-交互写入 base URL、嵌入模型、API key、rerank URL 与模型；后续 `nxjt index` 会沿用同一组
-`NXOPEN_MCP_*` 环境变量。切回本地：`nxjt config embed --provider local`。
-
-远程模式不需要下载 2 GB 模型，但查询依赖网络：嵌入不可达时，整串名（含 `Part`、`Session`
-这类单字名与全限定名）和查询中的驼峰标识符退回本地精确匹配；重排不可达时等 15 s 超时后
-回退到未重排顺序。已建索引无需重建（本地与云端同权重向量的余弦 0.99988–0.99994）。
 
 ## 命令
 
@@ -340,7 +310,7 @@ nxopen-journal-toolkit/
 | 组件 | 版本 | 来源 |
 |---|---|---|
 | `nxopen-journal-toolkit` | 1.0.1 | 本仓库 |
-| `nxopen-journal` skill | 1.7.0 | 技能仓库 `2fa3510`，115 文件 |
+| `nxopen-journal` skill | 1.7.0 | 技能仓库 `bf83452`，115 文件 |
 | `nxopen-mcp-enhanced` | 1.0.0 | fork 自 `mingfeng6684/nxopen-mcp` 0.2.0 |
 | NX | 12.0.0.27 | 已验证；NX 2506 未验证 |
 | Python | 宿主 3.11+ / NX 3.6.1 | 两者不可互换 |
@@ -352,18 +322,13 @@ toolkit 发 patch；两者一起更新发 minor。完整规则见 [docs/VERSIONS
 
 - **只验证 NX 12**。NX 2506 的线程 API、表达式 `.Value`、多体质量与 Block 布尔行为不同，
   技能里的配方按 NX 12 写死；跨版本使用需重新验证。
-- **批处理不出截图**。NX 12 的 UF 截图路线会崩、Gateway 路线提交后不写文件；三维图由 STL
-  离线渲染，工程图由 PDF 栅格化。需要真实 NX 视图时得开 GUI。
 - **索引不是开箱即用**。本包不附带索引和 NX 文档；首次建索引需要数小时（本地嵌入）或网络
-  （远程嵌入）。没有索引时 `search_api`/`find_builder` 不可用，`get_class`/`get_member`
-  也不能工作（它们同样查库）。
+  （远程嵌入）。没有索引时四个工具都不可用。
 - **远程模式依赖网络**。嵌入/重排服务不可达时按精确名回退或超时回退，语义检索质量下降。
-- **逆向重建不保证复杂件**。面表能稳定处理平面/圆柱/圆锥/圆环组成的结构；自由曲面、扫描
-  网格与复杂过渡仍可能失败，需要分层实体或近似构造，并在交付说明里标注为近似件。
-- **FEA 与 Motion 需要相应 license**。没有 Nastran 解算授权时 09/25 用例无法运行；Motion
-  需要 NX Motion 许可。
 - **未发布到 PyPI**。当前安装方式为源码 `pip install -e .`；`pip install nxopen-journal-toolkit`
   只在发布后可用。
+- 域内限制（批处理不能截图、逆向重建不保证复杂件、FEA/Motion 需要相应许可、阵列类型边界）
+  见[技能 README](https://github.com/EVOL233awa/nxopen-journal#已知限制)。
 
 ## 来源与许可
 
