@@ -374,6 +374,22 @@ The reference part is 120×80×20 with a 60×40×8 rectangular pocket, a Ø20×1
 expressions. Volume 166768.142 mm³ matches between the two parts, bounding-box difference 0, faces
 16=16, hole groups 5=5, and G0–G9 pass (G7 is N/A because there are no fillets).
 
+G0–G9 are the skill's ten hard gates for reverse-reconstructed parts; each returns one of
+PASS / FAIL / BLOCKED / N/A:
+
+| Gate | Criterion |
+|---|---|
+| G0 single readable solid | one body, volume > 0, every face readable, STL export on both sides |
+| G1 section profiles | at least one station per structure; per-station IoU ≥ 0.95, area difference ≤ 5%, no open loops |
+| G2 holes and cones | every cylinder/cone group accounted for; radius ≤ 0.025 mm, axis position ≤ 0.05 mm, axis angle ≤ 0.1°, length ≤ 0.1 mm, half-angle ≤ 0.1° |
+| G3 volume | relative difference ≤ 0.1% |
+| G4 bounding box | position and size differences ≤ 0.05 mm each |
+| G5 four views | top/front/side/iso outline IoU ≥ 0.99 |
+| G6 two-way deviation | RMS ≤ 0.8 mm, P95 ≤ 1.8 mm |
+| G7 fillet coverage | face and runway coverage ≥ 70% (0.10 mm), radius error ≤ 0.025 mm, local P95 ≤ 0.10 mm; N/A when the original has no fillets |
+| G8 expression editability | every named expression ×1.1 changes the volume; liveness 1.0, no missing parameters |
+| G9 feature-tree structure | features ≤ 4×structures+12, single-type share ≤ 0.50, tree depth ≤ 8 |
+
 ## Architecture
 
 ```mermaid
