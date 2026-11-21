@@ -6,7 +6,7 @@
 “NXOpen .NET API 到底长什么样”。前者让 agent 有可执行的方法，后者让 agent 不靠记忆猜 API。
 两者独立可用，合起来才是本工具包的完整形态。
 
-当前版本 **1.0.1**（组件清单见 [docs/VERSIONS.md](docs/VERSIONS.md)）。
+当前版本 **1.0.0**（组件清单见 [docs/VERSIONS.md](docs/VERSIONS.md)）。
 
 ## 目录
 
@@ -188,7 +188,7 @@ flowchart LR
 
 ## 示例产物
 
-以下九张图都是本工具包的实际产物，不是示意图：八张来自 1.0.0，国标装配图来自 1.0.1（技能 1.7.0）。生成环境：
+以下九张图都是本工具包的实际产物，不是示意图：八张来自 1.0.0，国标装配图来自技能 1.7.0。生成环境：
 
 ```text
 zcode, deepseek-v4.1flash1017(max), toolkit1.0.0版本
@@ -309,7 +309,7 @@ nxopen-journal-toolkit/
 
 | 组件 | 版本 | 来源 |
 |---|---|---|
-| `nxopen-journal-toolkit` | 1.0.1 | 本仓库 |
+| `nxopen-journal-toolkit` | 1.0.0 | 本仓库 |
 | `nxopen-journal` skill | 1.7.0 | 技能仓库 `376041e`，115 文件 |
 | `nxopen-mcp-enhanced` | 1.0.0 | fork 自 `mingfeng6684/nxopen-mcp` 0.2.0 |
 | NX | 12.0.0.27 | 已验证；NX 2506 未验证 |
