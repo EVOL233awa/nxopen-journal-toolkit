@@ -75,15 +75,13 @@ MCP、选择嵌入后端、建索引并自检；跑完后技能与 MCP 在宿主
 - 宿主 Python 3.11+（python -V）。NX journal 由 NX 内嵌 Python 3.6.1 执行，与宿主 Python 无关。
 
 步骤：
-1. 安装工具包（两者都未发布到 PyPI，必须从源码安装；先装 MCP，再装工具包）：
-   git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
-   python -m pip install -e nxopen-mcp-enhanced
-   git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
-   cd nxopen-journal-toolkit
-   python -m pip install -e .
+1. 安装工具包（未发布到 PyPI，从 GitHub Release 安装；先装 MCP，再装工具包）：
+   python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
+   python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
 2. 放置技能：
-   - 把 src/nxopen_journal_toolkit/_skill/nxopen_journal 复制或链接为
-     <你的技能目录>/nxopen-journal，目录名保持 nxopen-journal。
+   - 快照在已安装包的 _skill/nxopen_journal 下，用下面一行取得绝对路径：
+     python -c "import nxopen_journal_toolkit, pathlib; print(pathlib.Path(nxopen_journal_toolkit.__file__).parent / '_skill' / 'nxopen_journal')"
+   - 把它复制或链接为 <你的技能目录>/nxopen-journal，目录名保持 nxopen-journal。
    - 若宿主属于 nxjt 支持的目录约定，也可用 nxjt install --target <宿主> 自动放置
      （支持的取值见 nxjt install --help）。
    - 目标已存在先备份或改用链接；不要用 --force 删除 git 仓库。
@@ -105,7 +103,7 @@ MCP、选择嵌入后端、建索引并自检；跑完后技能与 MCP 在宿主
      NXOPEN_MCP_RERANK_URL=https://api.siliconflow.cn/v1/rerank
      NXOPEN_MCP_RERANK_MODEL=BAAI/bge-reranker-v2-m3
      NXOPEN_MCP_RERANK_API_KEY=<同 API key>
-   - 本地（离线）：python -m pip install "nxopen-mcp-enhanced[embed]"，首次下载约 2 GB。
+   - 本地（离线）：python -m pip install FlagEmbedding，首次下载约 2 GB。
    - 建索引：nxjt index --workers <核数>（默认使用 NX_HOME，缺省 D:\UG-NX12）；
      已有上游索引可复用：nxjt index --db C:\Users\<you>\.nxopen-mcp\index.db
      （嵌入模型必须一致，否则重建）。全量索引可能数小时：后台运行并定期报告进度，不要中断。
@@ -132,14 +130,21 @@ MCP、选择嵌入后端、建索引并自检；跑完后技能与 MCP 在宿主
 | Python | 宿主 3.11+（`nxjt` 与 MCP）；NX journal 由 NX 内嵌 Python 3.6.1 执行 |
 | 磁盘 | 技能约 4 MB；索引约 0.4 GB；只有走本地嵌入路线才另需约 2 GB 模型 |
 
-### 从源码安装（当前状态）
+### 安装工具包
 
-本仓库与 `nxopen-mcp-enhanced` 都尚未发布到 PyPI，必须从源码安装。MCP 是工具包的依赖，
-先装 MCP 再装工具包，`pip` 才能在本机满足依赖，不会去 PyPI 找同名包：
+本仓库与 `nxopen-mcp-enhanced` 都未发布到 PyPI，安装包挂在 GitHub Release。MCP 是工具包的
+依赖，先装 MCP 再装工具包，`pip` 才能在本机满足依赖，不会去 PyPI 找同名包：
+
+```bash
+python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+```
+
+开发或需要 extras 时从源码安装（editable）；顺序同样先 MCP 后工具包：
 
 ```bash
 git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
-python -m pip install -e nxopen-mcp-enhanced
+python -m pip install -e "nxopen-mcp-enhanced[reflect]"
 git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
 cd nxopen-journal-toolkit
 python -m pip install -e .
@@ -186,10 +191,10 @@ nxjt install --skill-only          # 不碰 MCP 配置
 nxjt config embed --provider remote
 
 # 或本地 BGE-M3（离线路线；首次使用下载约 2 GB）
-pip install "nxopen-mcp-enhanced[embed]"
+pip install FlagEmbedding
 ```
 
-远程路线不装 `[embed]`；免费档有固定 Rate Limits、需实名认证，`Pro/` 前缀同名模型收费。
+远程路线不装 `FlagEmbedding`；免费档有固定 Rate Limits、需实名认证，`Pro/` 前缀同名模型收费。
 `nxjt config embed --provider remote` 会同时打开重排（Recall@5 57.53% → 69.86%，73 条 golden）。
 
 `nxjt config embed` 交互写入 base URL、嵌入模型、API key、rerank URL 与模型，供 `nxjt index`
@@ -200,7 +205,7 @@ pip install "nxopen-mcp-enhanced[embed]"
 精确匹配；重排不可达时等 15 s 超时后回退到未重排顺序。
 
 未安装 FlagEmbedding 且未配置远程服务时，`nxjt index` 会失败，`nxjt doctor` 会给出 warn。
-`[reflect]`（pythonnet）只影响 `get_class` 是否显示继承成员，按需安装。
+`pythonnet` 只影响 `get_class` 是否显示继承成员，按需安装。
 
 ### 建索引
 
@@ -403,7 +408,7 @@ toolkit 发 patch；两者一起更新发 minor。完整规则见 [docs/VERSIONS
 - **索引不是开箱即用**。本包不附带索引和 NX 文档；首次建索引需要数小时（本地嵌入）或网络
   （远程嵌入）。没有索引时四个工具都不可用。
 - **远程模式依赖网络**。嵌入/重排服务不可达时按精确名回退或超时回退，语义检索质量下降。
-- **未发布到 PyPI**。当前安装方式为源码安装，见[安装](#安装)。
+- **未发布到 PyPI**。从 GitHub Release 安装，源码安装见[安装](#安装)。
 - 域内限制（批处理不能截图、逆向重建不保证复杂件、FEA/Motion 需要相应许可、阵列类型边界）
   见[技能 README](https://github.com/EVOL233awa/nxopen-journal#已知限制)。
 

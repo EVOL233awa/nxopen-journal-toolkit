@@ -84,15 +84,13 @@ Prerequisites (stop and report if any is missing; do not skip):
 - Host Python 3.11+ (python -V). NX journals run on NX embedded Python 3.6.1, independent of host Python.
 
 Steps:
-1. Install the toolkit (neither package is on PyPI; install from source, MCP first, then the toolkit):
-   git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
-   python -m pip install -e nxopen-mcp-enhanced
-   git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
-   cd nxopen-journal-toolkit
-   python -m pip install -e .
+1. Install the toolkit (not on PyPI; install from GitHub Releases, MCP first):
+   python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
+   python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
 2. Place the skill:
-   - Copy or link src/nxopen_journal_toolkit/_skill/nxopen_journal to
-     <your skill directory>/nxopen-journal, keeping the directory name.
+   - The snapshot lives under the installed package's _skill/nxopen_journal; get its absolute path:
+     python -c "import nxopen_journal_toolkit, pathlib; print(pathlib.Path(nxopen_journal_toolkit.__file__).parent / '_skill' / 'nxopen_journal')"
+   - Copy or link it to <your skill directory>/nxopen-journal, keeping the directory name.
    - If your host follows a directory convention supported by nxjt, nxjt install --target <host> can
      place it automatically (see nxjt install --help for supported values).
    - Back up an existing target or use a link instead; do not use --force to delete a git repository.
@@ -115,8 +113,7 @@ Steps:
      NXOPEN_MCP_RERANK_URL=https://api.siliconflow.cn/v1/rerank
      NXOPEN_MCP_RERANK_MODEL=BAAI/bge-reranker-v2-m3
      NXOPEN_MCP_RERANK_API_KEY=<same API key>
-   - Local (offline): python -m pip install "nxopen-mcp-enhanced[embed]"; the first run downloads
-     about 2 GB.
+   - Local (offline): python -m pip install FlagEmbedding; the first run downloads about 2 GB.
    - Build: nxjt index --workers <cores> (uses NX_HOME by default, D:\UG-NX12 if unset).
      To reuse an existing upstream index: nxjt index --db C:\Users\<you>\.nxopen-mcp\index.db
      (the embedding model must match, otherwise rebuild). A full index may take hours: run it in the
@@ -148,15 +145,22 @@ Steps:
 | Python | Host 3.11+ (`nxjt` and the MCP); NX journals run on NX embedded Python 3.6.1 |
 | Disk | Skill about 4 MB; index about 0.4 GB; local embedding adds about 2 GB of models |
 
-### Install from source (current state)
+### Install the toolkit
 
-Neither this repository nor `nxopen-mcp-enhanced` is on PyPI yet, so both must be installed from
-source. The MCP is a dependency of the toolkit; install the MCP first so that `pip` satisfies the
+Neither this repository nor `nxopen-mcp-enhanced` is on PyPI; both wheels are attached to GitHub
+Releases. The MCP is a dependency of the toolkit; install the MCP first so that `pip` satisfies the
 dependency locally instead of looking for a same-named package on PyPI:
 
 ```bash
+python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+```
+
+For development or extras, install from source (editable), again MCP first:
+
+```bash
 git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
-python -m pip install -e nxopen-mcp-enhanced
+python -m pip install -e "nxopen-mcp-enhanced[reflect]"
 git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
 cd nxopen-journal-toolkit
 python -m pip install -e .
@@ -208,10 +212,10 @@ index:
 nxjt config embed --provider remote
 
 # Or local BGE-M3 (offline; first use downloads about 2 GB)
-pip install "nxopen-mcp-enhanced[embed]"
+pip install FlagEmbedding
 ```
 
-The remote path does not install `[embed]`; the free tier has fixed rate limits and requires identity
+The remote path does not install `FlagEmbedding`; the free tier has fixed rate limits and requires identity
 verification, and same-named models with a `Pro/` prefix are billed. `nxjt config embed --provider
 remote` also enables reranking (Recall@5 57.53% → 69.86% on 73 golden queries).
 
@@ -226,7 +230,7 @@ identifiers in the query fall back to local exact matching; when reranking is un
 wait 15 s for the timeout and then use the unreranked order.
 
 Without FlagEmbedding and without a configured remote service, `nxjt index` fails and `nxjt doctor`
-reports a warning. `[reflect]` (pythonnet) only affects whether `get_class` shows inherited members;
+reports a warning. `pythonnet` only affects whether `get_class` shows inherited members;
 install it as needed.
 
 ### Build the index
@@ -454,7 +458,7 @@ updating both ships a minor. Full rules are in [docs/VERSIONS.md](docs/VERSIONS.
   an index, none of the four tools work.
 - **Remote mode needs the network.** When embedding/reranking services are unreachable, queries fall
   back to exact-name matching or time out, and semantic retrieval quality drops.
-- **Not on PyPI yet.** Installation is from source; see [Installation](#installation).
+- **Not on PyPI yet.** Install from GitHub Releases; for source installs see [Installation](#installation).
 - Domain limitations (batch mode cannot take screenshots, reverse reconstruction does not guarantee
   complex parts, FEA/Motion require the appropriate licenses, array type boundaries) are documented
   in the

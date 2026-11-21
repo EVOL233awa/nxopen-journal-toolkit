@@ -17,12 +17,19 @@
 
 ### 工具包与 MCP
 
-两者都尚未发布到 PyPI，必须从源码安装。MCP 是工具包的依赖，先装 MCP 再装工具包，`pip` 才能
-在本机满足依赖，不会去 PyPI 找同名包：
+两者都未发布到 PyPI，安装包挂在 GitHub Release。MCP 是工具包的依赖，先装 MCP 再装工具包，
+`pip` 才能在本机满足依赖，不会去 PyPI 找同名包：
+
+```bash
+python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+```
+
+开发或需要 extras 时改从源码安装（editable），顺序同样先 MCP 后工具包：
 
 ```bash
 git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
-python -m pip install -e nxopen-mcp-enhanced
+python -m pip install -e "nxopen-mcp-enhanced[reflect]"
 git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
 cd nxopen-journal-toolkit
 python -m pip install -e .
@@ -30,8 +37,15 @@ python -m pip install -e .
 
 ### 技能
 
-内置快照在 `src/nxopen_journal_toolkit/_skill/nxopen_journal`。复制或链接到宿主的技能目录，
-目录名保持 `nxopen-journal`；`nxjt install` 可代劳：
+快照在已安装包的 `_skill/nxopen_journal` 下（源码树里是
+`src/nxopen_journal_toolkit/_skill/nxopen_journal`）。复制或链接到宿主的技能目录，目录名保持
+`nxopen-journal`；`nxjt install` 可代劳。取得快照绝对路径：
+
+```bash
+python -c "import nxopen_journal_toolkit, pathlib; print(pathlib.Path(nxopen_journal_toolkit.__file__).parent / '_skill' / 'nxopen_journal')"
+```
+
+`nxjt install` 的技能目录与 MCP 配置写入范围：
 
 | `--target` | 技能目录 | MCP 配置 |
 |---|---|---|
@@ -75,7 +89,7 @@ nxjt config embed --provider remote
 写入宿主 MCP 配置的 `env`；完整变量清单见 README 的 agent 安装提示词。切回本地：
 `nxjt config embed --provider local`。
 
-本地 BGE-M3 是离线备选：先装 `pip install "nxopen-mcp-enhanced[embed]"`，首次建索引/查询会
+本地 BGE-M3 是离线备选：先装 `pip install FlagEmbedding`，首次建索引/查询会
 下载约 2 GB 模型，建索引可能需要数小时。两条路都没配时 `nxjt doctor` 给 warn，`nxjt index` 失败。
 
 `nxjt index` 写入 MCP 配置里 `--db` 指向的同一个文件，并沿用配置中的

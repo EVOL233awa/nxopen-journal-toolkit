@@ -19,13 +19,20 @@ index, and runs the self-check.
 
 ### Toolkit and MCP
 
-Neither is on PyPI yet, so both must be installed from source. The MCP is a dependency of the toolkit;
-install the MCP first so that `pip` satisfies the dependency locally instead of looking for a
-same-named package on PyPI:
+Neither is on PyPI yet; both wheels are attached to GitHub Releases. The MCP is a dependency of the
+toolkit; install the MCP first so that `pip` satisfies the dependency locally instead of looking for
+a same-named package on PyPI:
+
+```bash
+python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+```
+
+For development or extras, install from source (editable), again MCP first:
 
 ```bash
 git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
-python -m pip install -e nxopen-mcp-enhanced
+python -m pip install -e "nxopen-mcp-enhanced[reflect]"
 git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
 cd nxopen-journal-toolkit
 python -m pip install -e .
@@ -33,9 +40,16 @@ python -m pip install -e .
 
 ### Skill
 
-The bundled snapshot is at `src/nxopen_journal_toolkit/_skill/nxopen_journal`. Copy or link it into
-the host's skill directory, keeping the directory name `nxopen-journal`; `nxjt install` can do it for
-you:
+The snapshot lives under the installed package's `_skill/nxopen_journal` (in a source tree:
+`src/nxopen_journal_toolkit/_skill/nxopen_journal`). Copy or link it into the host's skill directory,
+keeping the directory name `nxopen-journal`; `nxjt install` can do it for you. Get the snapshot's
+absolute path:
+
+```bash
+python -c "import nxopen_journal_toolkit, pathlib; print(pathlib.Path(nxopen_journal_toolkit.__file__).parent / '_skill' / 'nxopen_journal')"
+```
+
+Skill directories and MCP configuration write targets of `nxjt install`:
 
 | `--target` | Skill directory | MCP configuration |
 |---|---|---|
@@ -83,7 +97,7 @@ toolkit's default MCP configuration entry. If your host does not use that entry,
 put the same variables in the host MCP configuration's `env`; the full variable list is in the
 README's agent install prompt. Switch back to local with `nxjt config embed --provider local`.
 
-Local BGE-M3 is the offline alternative: install `pip install "nxopen-mcp-enhanced[embed]"` first;
+Local BGE-M3 is the offline alternative: install `pip install FlagEmbedding` first;
 the first index build or query downloads about 2 GB of models, and the build may take hours. With
 neither path configured, `nxjt doctor` warns and `nxjt index` fails.
 
