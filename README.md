@@ -1,5 +1,7 @@
 # nxopen-journal-toolkit
 
+[English](README.en.md) | 中文
+
 面向 Siemens NX 12 的 agent 工具包：**一个技能 + 一个 MCP 检索服务**，一条命令完成安装。
 
 `nxopen-journal` 负责“怎么写 journal、怎么在 NX 里跑、产物怎么验”；`nxopen-mcp-enhanced` 负责
@@ -51,6 +53,75 @@ MCP 配置，避免“技能能跑但检索服务没起来”的半安装状态�
 
 ## 安装
 
+### 交给 agent 安装（推荐）
+
+把下面整段复制给任意宿主的 agent。它负责检查环境、安装工具包、把技能放进自己的技能目录、注册
+MCP、选择嵌入后端、建索引并自检；跑完后技能与 MCP 在宿主里可直接使用。
+
+```text
+任务：在本机安装并验证 nxopen-journal-toolkit（nxopen-journal 技能 + nxopen-mcp-enhanced MCP），
+结束后技能与 MCP 在宿主里可直接使用。
+
+仓库：
+- 技能：https://github.com/EVOL233awa/nxopen-journal
+- MCP：https://github.com/EVOL233awa/nxopen-mcp-enhanced
+- 工具包：https://github.com/EVOL233awa/nxopen-journal-toolkit
+
+宿主：按你自己的技能目录与 MCP 配置格式操作，不要假定宿主是某个特定 agent。
+
+环境前提（缺一即停并报告，不要跳过）：
+- Windows 11。
+- Siemens NX 12；NX_HOME 指向安装根（默认 D:\UG-NX12），%NX_HOME%\NXBIN\run_journal.exe 存在。
+- 宿主 Python 3.11+（python -V）。NX journal 由 NX 内嵌 Python 3.6.1 执行，与宿主 Python 无关。
+
+步骤：
+1. 安装工具包（两者都未发布到 PyPI，必须从源码安装；先装 MCP，再装工具包）：
+   git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
+   python -m pip install -e nxopen-mcp-enhanced
+   git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
+   cd nxopen-journal-toolkit
+   python -m pip install -e .
+2. 放置技能：
+   - 把 src/nxopen_journal_toolkit/_skill/nxopen_journal 复制或链接为
+     <你的技能目录>/nxopen-journal，目录名保持 nxopen-journal。
+   - 若宿主属于 nxjt 支持的目录约定，也可用 nxjt install --target <宿主> 自动放置
+     （支持的取值见 nxjt install --help）。
+   - 目标已存在先备份或改用链接；不要用 --force 删除 git 仓库。
+3. 注册 MCP（stdio）：
+   - 命令：nxopen-mcp-enhanced serve --db <索引路径>；
+     默认索引 C:\Users\<you>\.nxopen-mcp-enhanced\index.db。
+   - 按宿主的 MCP 配置格式注册，通用 JSON：
+     {"mcpServers":{"nxopen":{"command":"nxopen-mcp-enhanced","args":["serve","--db","<索引路径>"]}}}
+   - 若宿主受 nxjt 支持，nxjt install --target <宿主> 会写入配置或打印可直接合入的片段；
+     否则按宿主文档手写上述 JSON。
+4. 选择嵌入后端并建索引：
+   - 远程（推荐，不下载模型）：需要 OpenAI 兼容服务。把以下变量写入 MCP 配置的 env，
+     并在建索引的 shell 里设为同样的值：
+     NXOPEN_MCP_EMBEDDER=remote
+     NXOPEN_MCP_EMBED_URL=https://api.siliconflow.cn
+     NXOPEN_MCP_EMBED_MODEL=BAAI/bge-m3
+     NXOPEN_MCP_EMBED_API_KEY=<向用户索取；不要回显或写入日志>
+     NXOPEN_MCP_RERANK=1
+     NXOPEN_MCP_RERANK_URL=https://api.siliconflow.cn/v1/rerank
+     NXOPEN_MCP_RERANK_MODEL=BAAI/bge-reranker-v2-m3
+     NXOPEN_MCP_RERANK_API_KEY=<同 API key>
+   - 本地（离线）：python -m pip install "nxopen-mcp-enhanced[embed]"，首次下载约 2 GB。
+   - 建索引：nxjt index --workers <核数>（默认使用 NX_HOME，缺省 D:\UG-NX12）；
+     已有上游索引可复用：nxjt index --db C:\Users\<you>\.nxopen-mcp\index.db
+     （嵌入模型必须一致，否则重建）。全量索引可能数小时：后台运行并定期报告进度，不要中断。
+5. 自检：
+   - nxjt doctor：检查 NX_HOME、run_journal.exe、NXOpen XML、索引、嵌入后端、MCP 可执行。
+     其中 MCP 配置检查针对工具包默认的写入目标；你的宿主不使用该目标时该项会失败，属预期，
+     改为核对你自己的 MCP 配置。
+   - nxjt verify --skill-dir <你的技能目录>：技能自检 + 真实 MCP stdio 冒烟
+     （get_member "Tag"）。技能目录不在 CLI 探测范围时必须传 --skill-dir；冒烟读取的索引
+     路径来自工具包默认的 MCP 配置，索引不在默认路径时以第 3 条的 get_member 调用为准。
+   - 在宿主的 MCP 客户端里实际调用 get_member（参数 "Tag"），确认返回成员。
+6. 报告：
+   - 安装路径、工具包与技能版本、索引路径与大小、MCP 注册位置、doctor/verify 结果。
+   - 失败项附原始输出末尾 50 行；不要只报退出码；不要声称未验证的步骤已通过；不要回显 API key。
+```
+
 ### 前置
 
 | 项 | 要求 |
@@ -63,29 +134,55 @@ MCP 配置，避免“技能能跑但检索服务没起来”的半安装状态�
 
 ### 从源码安装（当前状态）
 
-本仓库尚未发布到 PyPI。先安装工具包本身，再由 `nxjt` 安装技能与 MCP：
+本仓库与 `nxopen-mcp-enhanced` 都尚未发布到 PyPI，必须从源码安装。MCP 是工具包的依赖，
+先装 MCP 再装工具包，`pip` 才能在本机满足依赖，不会去 PyPI 找同名包：
 
 ```bash
+git clone https://github.com/EVOL233awa/nxopen-mcp-enhanced
+python -m pip install -e nxopen-mcp-enhanced
 git clone https://github.com/EVOL233awa/nxopen-journal-toolkit
 cd nxopen-journal-toolkit
 python -m pip install -e .
 ```
 
-`pip install -e .` 会一并安装 `nxopen-mcp-enhanced`。如果 MCP 也来自本地源码，先把 fork 仓库
-装上（`python -m pip install -e D:\nxopen-mcp-enhanced`），再安装本包，避免依赖解析去 PyPI 找同名包。
+### 安装技能与 MCP
 
-发布后可直接：
+`nxjt install` 按宿主放置技能，MCP 配置的写入或打印范围如下：
+
+| `--target` | 技能目录 | MCP 配置 |
+|---|---|---|
+| `codex` | `%USERPROFILE%\.codex\skills` | 打印 Codex `config.toml` 片段 |
+| `claude` | `%USERPROFILE%\.claude\skills` | 打印 Claude `.mcp.json` 片段 |
+| `all` | 所有内置宿主目录 | 写入默认 MCP 配置入口，并打印其余片段 |
+| `auto`（默认） | 探测已存在的内置宿主目录，未探测到回退默认目标 | 同探测结果 |
+
+其余目标名与目录以 `nxjt install --help` 为准；表中未列出的宿主按下一段手动放置。
 
 ```bash
-pip install nxopen-journal-toolkit
+nxjt install                       # auto
+nxjt install --target codex        # 换 claude / all 等
+nxjt install --skill-only          # 不碰 MCP 配置
 ```
+
+`nxjt install` 写 MCP 配置前自动备份，内容不变时跳过；技能目录已存在时默认跳过，`--force`
+覆盖，但目标是 git 仓库时拒绝删除。目录约定与写入目标以 `--target` 表为准；宿主不在表内时
+按下一段手动放置。
+
+宿主不在上表时（其他 agent、自建客户端）：把内置技能快照复制或链接到自己的技能目录，目录名保持
+`nxopen-journal`；MCP 按宿主的 stdio server 格式注册，通用 JSON：
+
+```json
+{"mcpServers":{"nxopen":{"command":"nxopen-mcp-enhanced","args":["serve","--db","<索引路径>"]}}}
+```
+
+索引路径默认 `%USERPROFILE%\.nxopen-mcp-enhanced\index.db`，与 `nxjt index --db` 保持一致。
 
 ### 选择嵌入后端
 
 工具包默认依赖不强制安装本地模型，建索引前先选一条：
 
 ```bash
-# 推荐：硅基流动免费模型（BAAI/bge-m3 + BAAI/bge-reranker-v2-m3，不下载模型）
+# 远程：硅基流动免费模型（BAAI/bge-m3 + BAAI/bge-reranker-v2-m3，不下载模型）
 nxjt config embed --provider remote
 
 # 或本地 BGE-M3（离线路线；首次使用下载约 2 GB）
@@ -95,34 +192,15 @@ pip install "nxopen-mcp-enhanced[embed]"
 远程路线不装 `[embed]`；免费档有固定 Rate Limits、需实名认证，`Pro/` 前缀同名模型收费。
 `nxjt config embed --provider remote` 会同时打开重排（Recall@5 57.53% → 69.86%，73 条 golden）。
 
+`nxjt config embed` 交互写入 base URL、嵌入模型、API key、rerank URL 与模型，供 `nxjt index`
+沿用；它写入的是工具包默认的 MCP 配置入口。宿主不使用该入口时改用 `NXOPEN_MCP_*` 环境变量：
+建索引前在 shell 里设置，并把同一组变量写入宿主 MCP 配置的 `env`（完整清单见上方 agent 安装
+提示词）。切回本地用 `--provider local`。已建索引无需重建（本地与云端同权重向量的余弦
+0.99988–0.99994）。远程模式查询依赖网络：嵌入不可达时，整串名与查询中的驼峰标识符退回本地
+精确匹配；重排不可达时等 15 s 超时后回退到未重排顺序。
+
 未安装 FlagEmbedding 且未配置远程服务时，`nxjt index` 会失败，`nxjt doctor` 会给出 warn。
 `[reflect]`（pythonnet）只影响 `get_class` 是否显示继承成员，按需安装。
-
-`nxjt config embed --provider remote` 会交互写入 base URL、嵌入模型、API key、rerank URL 与模型，
-后续 `nxjt index` 沿用同一组 `NXOPEN_MCP_*` 环境变量；切回本地用 `--provider local`。已建索引
-无需重建（本地与云端同权重向量的余弦 0.99988–0.99994）。远程模式查询依赖网络：嵌入不可达时，
-整串名与查询中的驼峰标识符退回本地精确匹配；重排不可达时等 15 s 超时后回退到未重排顺序。
-
-### 一键安装技能与 MCP
-
-```bash
-nxjt install --target zcode
-```
-
-它会：
-
-1. 把内置的技能快照复制到 `~/.codex/skills/nxopen-journal`（ZCode 与 Codex 共用该目录）；
-2. 在 `~/.zcode/cli/config.json` 写入/更新 `nxopen` MCP server，命令指向 `nxopen-mcp-enhanced`；
-3. 写配置前自动备份；内容未变化时跳过；目标目录是 git 仓库时拒绝 `--force`，避免误删开发副本。
-
-其他宿主：
-
-```bash
-nxjt install --target codex     # 只复制技能，打印 Codex 的 MCP 配置片段
-nxjt install --target claude    # 只复制技能，打印 Claude 的 MCP 配置片段
-nxjt install --target all       # 复制到 zcode / codex / claude
-nxjt install --skill-only       # 不碰 MCP 配置
-```
 
 ### 建索引
 
@@ -148,13 +226,16 @@ nxjt verify --nx  # 追加 NX 回归套件（51 个带判定的用例，耗时�
 ```
 
 `verify` 任一项失败即非零退出；冒烟会用配置里的 `--db` 真正启动 MCP 并查一个成员，不是只看
-`--help`。
+`--help`。技能目录不在 CLI 探测的 `%USERPROFILE%\.codex\skills`、`%USERPROFILE%\.claude\skills`
+时，`verify` 需传 `--skill-dir <技能目录>`。`doctor` 的 MCP 配置检查针对工具包默认的写入目标；
+宿主不使用该目标时该项会失败，属预期，以宿主自身的 MCP 配置和 `get_member` 实际调用为准。
+`verify` 冒烟读取的索引路径同样来自工具包默认的 MCP 配置，索引不在默认路径时以宿主调用为准。
 
 ## 命令
 
 | 命令 | 作用 |
 |---|---|
-| `nxjt install [--target zcode\|codex\|claude\|all\|auto] [--force] [--skill-only]` | 复制技能；ZCode 目标同时写 MCP 配置（备份、幂等、拒绝删 git 仓库） |
+| `nxjt install [--target <宿主>] [--force] [--skill-only]` | 复制技能；内置支持的宿主写入或打印 MCP 配置片段（备份、幂等、拒绝删 git 仓库） |
 | `nxjt doctor` | 检查 NX、`run_journal.exe`、`NXBIN\managed` XML、索引、MCP 配置、BOM 版本 |
 | `nxjt index [--nx-path ...] [--db ...] [--workers N]` | 用内置 MCP 构建/增量写入索引，沿用配置里的嵌入环境 |
 | `nxjt verify [--nx] [--skill-dir ...]` | 技能仓库自检 + MCP stdio 冒烟；`--nx` 跑 NX 回归套件 |
@@ -189,10 +270,6 @@ flowchart LR
 ## 示例产物
 
 以下九张图都是本工具包的实际产物，不是示意图：八张来自 1.0.0，国标装配图来自技能 1.7.0。生成环境：
-
-```text
-zcode, deepseek-v4.1flash1017(max), toolkit1.0.0版本
-```
 
 即 ZCode + DeepSeek-V4.1-Flash-1017（max）+ nxopen-journal-toolkit 1.0.0；NX 12.0.0.27，
 Windows 11，宿主 Python 3.12.0，NX 内嵌 Python 3.6.1。三维图由 STL 在 NX 外离线渲染，
@@ -252,7 +329,7 @@ x=25…190 表面 von Mises 与理论最大偏差 0.533%；根部 x<25 mm 的应
 ```mermaid
 flowchart TB
     subgraph Client["agent / IDE"]
-        AG[ZCode / Codex / Claude]
+        AG[任意 agent 宿主]
     end
     subgraph Toolkit["nxopen-journal-toolkit"]
         CLI[nxjt CLI]
@@ -296,6 +373,7 @@ nxopen-journal-toolkit/
 ├── tools/sync_skill.py           从技能仓库导出快照并校验
 ├── docs/
 │   ├── INSTALL.md                安装与嵌入后端细节
+│   ├── INSTALL.en.md             英文版安装说明
 │   ├── VERSIONS.md               组件 BOM 与更新规则
 │   └── images/                   示例产物图
 └── tests/                        CLI 与安装链测试
@@ -310,7 +388,7 @@ nxopen-journal-toolkit/
 | 组件 | 版本 | 来源 |
 |---|---|---|
 | `nxopen-journal-toolkit` | 1.0.0 | 本仓库 |
-| `nxopen-journal` skill | 1.7.0 | 技能仓库 `376041e`，115 文件 |
+| `nxopen-journal` skill | 1.7.0 | 技能仓库 `b709535`，115 文件 |
 | `nxopen-mcp-enhanced` | 1.0.0 | fork 自 `mingfeng6684/nxopen-mcp` 0.2.0 |
 | NX | 12.0.0.27 | 已验证；NX 2506 未验证 |
 | Python | 宿主 3.11+ / NX 3.6.1 | 两者不可互换 |
@@ -325,8 +403,7 @@ toolkit 发 patch；两者一起更新发 minor。完整规则见 [docs/VERSIONS
 - **索引不是开箱即用**。本包不附带索引和 NX 文档；首次建索引需要数小时（本地嵌入）或网络
   （远程嵌入）。没有索引时四个工具都不可用。
 - **远程模式依赖网络**。嵌入/重排服务不可达时按精确名回退或超时回退，语义检索质量下降。
-- **未发布到 PyPI**。当前安装方式为源码 `pip install -e .`；`pip install nxopen-journal-toolkit`
-  只在发布后可用。
+- **未发布到 PyPI**。当前安装方式为源码安装，见[安装](#安装)。
 - 域内限制（批处理不能截图、逆向重建不保证复杂件、FEA/Motion 需要相应许可、阵列类型边界）
   见[技能 README](https://github.com/EVOL233awa/nxopen-journal#已知限制)。
 
