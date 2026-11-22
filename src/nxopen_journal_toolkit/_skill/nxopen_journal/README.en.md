@@ -2,273 +2,173 @@
 
 [中文](README.md) | English
 
-Current version 1.7.0 (see [CHANGELOG.md](CHANGELOG.md)).
+Let an agent write NX 12 journals from natural language and replay them in batch to produce models and drawings.
 
-An agent skill for Siemens NX 12. After installation, an agent can write NXOpen Python journal
-scripts from natural-language instructions, run them headlessly through NX 12 in batch mode, and
-produce solid models, assemblies, Drafting drawings, NX Nastran FEA results and NX Motion
-simulations.
+`NX 12 (12.0.0.27)` · `NX Python 3.6.1` · `Host Python 3.11+` · `v1.7.0` · `MIT`
 
-## Applies to
+## Contents
 
-Windows 11 + NX 12 (currently 12.0.0.27). Other platforms and NX versions are untested.
+- [Background](#background)
+- [Features](#features)
+- [Layout](#layout)
+- [Installation](#installation)
+- [Behavior and limitations](#behavior-and-limitations)
+- [Tests](#tests)
+- [License](#license)
 
-### Python versions
+## Background
 
-| Purpose | Interpreter | Version |
-| --- | --- | --- |
-| NX journal execution | NX 12 embedded Python | 3.6.1 (fixed, cannot be replaced) |
-| Repository checks, PDF verification | Host Python | 3.11+ |
-| nxopen MCP | Host Python | 3.11+ (upstream `requires-python = ">=3.11"`) |
+The hard part of NXOpen journals is not syntax but whether a call survives NX 12 batch execution. This skill turns verified findings into recipes: every conclusion is first checked against the nxopen MCP for API existence, then run in NX 12 batch; conclusions that can be pinned down get a regression case. The agent reads `SKILL.md` to pick a domain, reads that domain's reference file, writes the journal, passes the static checker, and replays it in batch.
 
-The host tools themselves need less than 3.11: `check_repo.py` needs 3.8+ and current pymupdf needs
-3.10+. Using 3.11+ for both the host tools and nxopen MCP avoids maintaining two Python environments.
+It covers 3D modeling, assemblies, Drafting, Nastran FEA, Motion simulation, and reverse reconstruction, plus a set of deliverable gates. Real outputs for all six domains are in the [nxopen-journal-toolkit](https://github.com/EVOL233awa/nxopen-journal-toolkit) README; this repository keeps only the skill sources, references, and regression suite.
 
-The skill itself is written in Chinese: `SKILL.md` and `references/*.md` are the working documents
-the agent reads. This page is the English entry point.
-
-## What it covers
+## Features
 
 | Domain | Covered |
 | --- | --- |
-| Modeling | sketches, extrude and revolve, boolean, shell and draft, patterns (linear, circular, along path, helix, polygon, general, reference), hole package (three non-threaded types; threads use a pilot hole plus annotation), layers and categories, STL export |
-| Assembly | assembly structure, mating constraints, draggable mechanism, two routes to a revolute joint, two geometric routes for interference checking |
-| Drafting | base and projected views, detail view, sections (stepped, half, revolved), assembly balloons/sections/full title block, dimensions and centrelines, radius dimensions |
-| FEA | Nastran SOL101 static, 2D shell mesh, solve-level calibration, solution and boundary-condition descriptors |
-| Motion | links and joints (revolute, slider, gear coupler), drivers, solving, result extraction |
-| Reverse engineering | structure inventory and sections from a featureless solid, rebuild as an editable structure-feature model, independent recomputation of sections, holes, volume, bounding box, four-view silhouettes and two-way surface deviation |
-| Deliverable verification | STEP entity census (solids/faces/edges, NAUO, PRODUCT, PMI subtypes, dangling references), STL topology (watertight, winding, signed volume, Euler characteristic), DXF layout-aware entity counts, tri-axis occupancy and connected components, drawing PDF text layer; three-state `PASS`/`FAIL`/`NO_SIGNAL` |
+| 3D modeling | Sketches, extrude/revolve, booleans, shell/draft, nine pattern types, three non-threaded hole types in the hole package, layers and categories, STL export |
+| Assemblies | Assembly structure, mating constraints, draggable mechanisms, two routes for revolute joints, two geometry routes for interference checks; ball, cylindrical, hinge, and slider joints belong to Motion |
+| Drafting and GB drawings | Three views, projected views, detail views, sections, assembly balloons/sections/title blocks, dimensions, centerlines; GB frames, line weights, fonts, and first-angle placement handled by `gb_drawing.py` |
+| FEA | Nastran SOL101 static analysis, 2D shell meshes, solve-level calibration, boundary-condition descriptors; requires an NX Nastran solver license |
+| Motion simulation | Links, revolute joints, slider joints, gear couplers, drivers, solving, result extraction; frame 0 is t=0 |
+| Reverse reconstruction | Extracts a structure list and sections from a featureless solid, rebuilds an editable model by structural features; independently re-computes sections, holes, volume, bounding box, four views, and two-way deviation |
+| Deliverable verification | STEP/STL/DXF/occupancy/PDF gates with three-state `PASS`/`FAIL`/`NO_SIGNAL`; host-side entry points `check_deliverables.py`, `run_journal_checked.py`, `api_index.py` |
 
-Five tools come with it: `scripts/check_journal.py` (static check of a journal against
-a rule base of measured NX 12 pitfalls), `scripts/run_journal_batch.bat` (headless replay),
-`scripts/gb_drawing.py` (GB-style drawing kit: A4/A3 frame, pinned views, assembly balloons/sections/full title block, tech
-note and dimension lanes — any journal can `import gb_drawing`), the case standard layer
-`scripts/nxlib/` (test framework plus recipe modules for modeling, assembly, drafting,
-measurement, rolling fillets, parameter templates, the reverse measurement compiler,
-skeletons, the structure library and auditing; regression cases import it instead of
-copying their own), and the offline figure
-chain in `scripts/render/` (batch sessions cannot capture images, so solids are rendered
-from STL outside NX and drawing PDFs are rasterised on the host).
+Supporting scripts: `check_journal.py` static checks, `run_journal_batch.bat` batch replay, `nxlib/` test standard layer, `render/` offline rendering chain, and the `tests/` regression suite.
 
-Host-side gates run outside NX as well: `scripts/deliverable.py`, `scripts/check_deliverables.py`,
-the occupancy gate `scripts/occupancy.py`, the offline API index `scripts/api_index.py` and the
-marker wrapper `scripts/run_journal_checked.py`.
+## Layout
 
-## Figures from real runs
+```text
+nxopen-journal/
+├── SKILL.md                  entry layer: rules / environment / skeleton / logs / workflow / domain routing
+├── README.md / README.en.md  Chinese and English documentation
+├── CHANGELOG.md              version history
+├── references/               nine domain files
+├── scripts/
+│   ├── check_journal.py      static checks
+│   ├── check_repo.py         repository self-check
+│   ├── run_journal_batch.bat batch replay
+│   ├── gb_drawing.py         GB drawings
+│   ├── nxlib/                test standard layer
+│   ├── render/               offline rendering chain
+│   └── tests/                54 case files + RUN_TESTS.bat
+├── docs/wiki/                maintainer guide
+├── .github/workflows/ci.yml  cloud CI
+└── agents/openai.yaml        Codex/OpenAI config
+```
 
-Figures covering all six domains (modeling, assembly, drafting/GB drawing, FEA, motion,
-reverse engineering), together with the exact host and version annotation, live in the
-**nxopen-journal-toolkit** README:
-<https://github.com/EVOL233awa/nxopen-journal-toolkit>.
+## Installation
 
-They were regenerated by the installed toolkit through NX 12 batch runs, not drawn as
-illustrations. This repository keeps only the skill sources, references and regression suite.
+Quick start: copy the whole block below to an agent on any host. It clones this repository, confirms the NX environment, and runs the static check and regression suite. Changes are in [CHANGELOG.md](CHANGELOG.md).
 
-## Requirements
+```text
+Task: install and verify nxopen-journal.
+1. Clone it into the agent's skill directory, keeping the name nxopen-journal.
+2. Confirm NX_HOME and %NX_HOME%\NXBIN\run_journal.exe; NX embedded Python is 3.6.1.
+3. Run python scripts\check_repo.py and confirm the output CHECK_REPO_OK.
+4. Run scripts\tests\RUN_TESTS.bat and confirm the last line === ALL TESTS PASSED ===, with no _FAIL, FATAL, or SKIP in the log.
+5. Report the install path, NX version, NX_HOME, Python version, and both check results; on failure report the case number, failed item, and the last 50 log lines.
+```
 
-| # | Requirement | How to check | If missing |
-| --- | --- | --- | --- |
-| 1 | Windows 11 + Siemens NX 12 (12.0.0.27) with the NXOpen automation interface | `%NX_HOME%\NXBIN\run_journal.exe` exists | Batch replay cannot run; none of the 51 gated cases run, only the static check is left |
-| 2 | `NX_HOME` pointing at the NX install root | defaults to `D:\UG-NX12`; set `NX_HOME` if yours is elsewhere | The batch wrapper prints an error and exits with code 2 instead of silently using the wrong path |
-| 3 | An agent that loads skills | put the directory into the agent's skill directory and let the agent read `SKILL.md` | The skill never triggers. Routing comes from the frontmatter of `SKILL.md`; nothing to compile or register |
-| 4 | Python 3.11+ (host) | `python -V`. `check_journal.py`, `check_repo.py` and the PDF value check use it (the latter also needs pymupdf) | Journals are unaffected: NX runs them with its embedded Python 3.6.1; the host Python only runs checks and MCP |
-| 5 | NX Nastran solver licence | the solve log prints a `NASTRAN LICENSE:` line near the top | Cases 09 and 25 cannot run; everything else can. These two really call the solver, they are not optional |
-| 6 | nxopen MCP | see below | Optional; read the dependency notes first |
+Or install manually with the steps below.
+
+### Prerequisites
+
+| Requirement | Detail | If missing |
+| --- | --- | --- |
+| OS | Windows 11 | Batch execution and regression tests cannot run |
+| NX | Siemens NX 12 (verified 12.0.0.27) with the NXOpen automation interface | Only static checks remain |
+| `NX_HOME` | NX install root; defaults to `D:\UG-NX12` | Batch fails with exit code 2 |
+| Agent | An agent that can load skill directories | The skill will not trigger |
+| Python | Host 3.11+ | Journals are unaffected; checks and MCP are unavailable |
+| NX Nastran license | The solve log prints `NASTRAN LICENSE:` | Cases 09 and 25 cannot run; the rest still work |
+| nxopen MCP (optional) | See below | Fall back to `dir()` and UGOPEN headers when writing API calls |
+
+NX journals run on NX 12 embedded Python 3.6.1, independent of host Python; the two are not interchangeable.
+
+### Configuration
+
+| Setting | Description | Default |
+|---|---|---|
+| `NX_HOME` | NX install root | `D:\UG-NX12` |
+| `KEEP_PARTS` | Keep `scripts/tests/parts/` when `RUN_TESTS.bat` runs | unset (clean) |
+
+### Manual installation
+
+1. Put the repository in your agent's skill directory, keeping the name `nxopen-journal`:
+
+   ```bash
+   git clone https://github.com/EVOL233awa/nxopen-journal
+   ```
+
+   Codex CLI uses `~/.codex/skills/`, Claude Code uses `~/.claude/skills/`; other agents follow their own skill directory convention.
+
+2. Confirm `NX_HOME` and `%NX_HOME%\NXBIN\run_journal.exe`. Set `NX_HOME` first if NX is installed elsewhere.
+
+3. Static check:
+
+   ```bash
+   python scripts/check_repo.py
+   ```
+
+   `CHECK_REPO_OK` means it passed.
+
+4. Full regression:
+
+   ```bat
+   scripts\tests\RUN_TESTS.bat
+   ```
+
+   The last line is `=== ALL TESTS PASSED ===`, and the log contains no `_FAIL`, `FATAL`, or `SKIP`.
+
+5. After installation, describe the task in natural language:
+
+   > Use nxopen-journal to build a 120×80×12 bracket with four M8 counterbores and export three views.
 
 ### nxopen MCP (optional)
 
-The most common failure when writing journals is an API name or signature that does not exist.
-nxopen MCP indexes the official documentation from the local NX installation so the agent can check
-real classes, members and signatures instead of guessing. It is a separate project and needs its own
-install:
+The most common journal error is a wrong API name or signature. The nxopen MCP indexes your local NX documentation so the agent can look up classes, members, and signatures that actually exist.
 
-- Full install: use `nxopen-journal-toolkit`; `nxjt install` registers the MCP server and wires up
-  the index as well.
-- MCP only: this fork [`nxopen-mcp-enhanced`](https://github.com/EVOL233awa/nxopen-mcp-enhanced)
-  1.0.0 (remote embedding and reranking, rerank timeout fallback, `get_class` paging), or upstream
-  [`nxopen-mcp`](https://github.com/mingfeng6684/nxopen-mcp) v0.2.0.
+- Full install: use `nxopen-journal-toolkit`; `nxjt install` registers the MCP and `nxjt index` builds the index.
+- MCP only: this fork [`nxopen-mcp-enhanced`](https://github.com/EVOL233awa/nxopen-mcp-enhanced) 1.0.0, or upstream [`nxopen-mcp`](https://github.com/mingfeng6684/nxopen-mcp) v0.2.0.
+- Build the index: `nxopen-mcp-enhanced index --nx-path <NX install root>` or `nxopen-mcp index --nx-path <NX install root>`.
 
-Build the index once against the NX installation (`nxopen-mcp-enhanced index --nx-path <NX install root>`
-or `nxopen-mcp index --nx-path <NX install root>`). Indexing, embedding/reranking settings and failure
-behaviour are documented in the MCP repository.
+The skill works without it; queries that mix Chinese with English terms (for example `创建拉伸特征 extrusion`) hit better, while short Chinese-only terms are unreliable.
 
-The skill works without MCP; API checks then fall back to `dir()` and the UGOPEN headers. Queries that
-mix Chinese with English API terms (e.g. `创建拉伸特征 extrusion`) retrieve much better; bare Chinese
-words are unreliable.
+## Behavior and limitations
 
-## Install
+- When `NX_HOME` is unset: batch looks for NX under the default `D:\UG-NX12`; if not found, it exits with code 2.
+- When a journal enters NX: the interpreter is fixed at 3.6.1, so `math.dist`, `math.prod`, `math.isqrt`, f-string `=`, dict merge operators, and `functools.cache` are unavailable; run `check_journal.py` before execution.
+- When `RUN_TESTS.bat` runs: it clears `scripts/tests/parts/` by default; set `KEEP_PARTS=1` to keep artifacts; judgments read log tokens, not exit codes.
+- When a deliverable gate cannot see its instrument: it returns `NO_SIGNAL`, not `FAIL`. ASCII DXF can be checked without `ezdxf`; binary DXF without the library can only return `NO_SIGNAL`.
+- Only Windows 11 + NX 12.0.0.27 is verified; other platforms and versions are untested.
+- Batch mode cannot take screenshots; images come from Drafting PDF or external STL rendering.
+- Case 26 keeps one native crash record at the `ThreadedHole` boundary; judgments read log tokens.
+- The drawing PDF gate proves only that a text layer exists, not that the content is complete; title blocks and Chinese technical notes are read back from the NX model side.
+- Of the nine pattern types, `Mirror` is rejected at commit time; feature mirroring uses `Features.MirrorFeatureBuilder`.
+- Reverse reconstruction does not guarantee a one-pass result on complex parts; this version provides a structure list, an editable feature tree, and an independent re-computation acceptance chain.
+- The skill only generates scripts and artifacts; it does not modify the NX installation directory.
 
-This section is a task description that can be handed directly to an agent. Send the block below to
-the agent; the skill source is already set to this repository.
+## Tests
 
-```text
-Task: install and verify the nxopen-journal skill.
-
-Skill source: https://github.com/EVOL233awa/nxopen-journal
-
-Steps:
-1. Install the skill
-   - Clone or download the repository into the agent's skill directory, keeping the directory name nxopen-journal:
-     git clone https://github.com/EVOL233awa/nxopen-journal
-   - Codex CLI: ~/.codex/skills/
-   - Claude Code: ~/.claude/skills/
-   - Other agents: follow their documentation.
-   - Confirm SKILL.md, scripts/run_journal_batch.bat and scripts/tests/RUN_TESTS.bat exist.
-
-2. Check the runtime environment
-   - OS: Windows 11.
-   - NX: Siemens NX 12 (currently 12.0.0.27). Other NX versions are untested.
-   - Confirm %NX_HOME%\NXBIN\run_journal.exe exists. NX_HOME defaults to D:\UG-NX12; set it if NX is installed elsewhere.
-   - Confirm the embedded NX interpreter is Python 3.6.1; write journals with 3.6 syntax.
-   - Host Python: 3.11+ (for check_repo.py, check_journal.py, PDF verification and nxopen MCP; independent of the NX embedded interpreter).
-
-3. Run static checks and regression
-   - Run python scripts\check_repo.py and confirm CHECK_REPO_OK.
-   - Run scripts\tests\RUN_TESTS.bat and report every case.
-   - Verdict: the expected marker for each case appears, no _FAIL and no SKIP appears; the last line is === ALL TESTS PASSED ===.
-   - A SKIP means host Python or pymupdf is missing; install Python 3.11+ and run `pip install pymupdf` in that interpreter, then rerun. A skipped step does not count as passed.
-   - On failure, report the case number, the failing item and the last 50 log lines; do not report only the exit code.
-
-4. Configure nxopen MCP (optional)
-   - The recommended route is nxopen-journal-toolkit's nxjt install, which installs the skill and MCP together; standalone installation is described above.
-   - Build the index against the local NX installation as described in the MCP repository's README.
-   - Verify: get_class / get_member return members, search_api returns results.
-   - If MCP is not configured, state that API checks will fall back to dir() and the UGOPEN headers.
-
-5. Report
-   - Install path and skill directory.
-   - NX version, NX_HOME and Python version.
-   - Results of check_repo and RUN_TESTS.
-   - Missing items and decisions that need a human (NX version other than 12, different install drive, etc.).
-```
-
-### Day-to-day use
-
-Describe the job in plain language, for example:
-
-> With nxopen-journal, model a 120x80x12 bracket with four corner M8 counterbore holes and
-> export three views.
-
-The agent reads `SKILL.md`, then the domain file for the task, writes the journal, runs the static
-check, and replays it. The output is `.prt` files and drawings.
-
-### Verify the install
-
-Run the full regression suite once; a final summary line of all tests passed means this machine is
-ready:
-
-```
-> scripts\tests\RUN_TESTS.bat
-PASS 27_radius_dim.py
-PASS 28_pattern_helix.py
-PASS 29_interference.py
-PASS 30_fea_descriptors.py
-PASS 31_drafting_sections.py
-PASS 32_pattern_enums.py
-PASS 33_gb_sheet.py
-PASS 34_involute_gear.py
-PASS 35_assembly_preload.py
-PASS 36_motion_slider.py
-PASS 37_sketch_autodim_param.py
-PASS 38_measure.py
-PASS 39_reverse_route.py
-PASS 40_rolling_network.py
-(PASS 41_template.py through PASS 53_pmi_census.py omitted)
-PASS 09_fea_static.py
-PASS check_journal rule selftest - counter-examples hit, clean passes
-PASS runner marker selftest
-PASS pdf value check - test 19 annotation values
-=== ALL TESTS PASSED ===
-```
-
-51 gated cases pass, plus three one-shot API probes that are kept as evidence and are not part of
-the check. By default the run deletes the artifacts under `scripts/tests/parts/`, including the
-Nastran intermediate files, because every run rebuilds them completely.
-
-## Regression cases
-
-The suite is grouped by domain; what each case covers and how its negative check is done is
-recorded in `scripts/tests/README.md`.
+The suite has 54 case files = 51 gated cases + 3 one-off API probes. What each case covers and how it is negatively verified are in `scripts/tests/README.md`.
 
 | Domain | Cases |
 | --- | --- |
-| Modeling | 01 02 03 05 08 14 15 22 26 28 32 34 37 |
-| Parametric & audit | 41 42 43 44 45 46 47 48 |
-| Assembly | 04 10 16 17 29 35 |
-| Drafting | 06 07 19 20 21 27 31 33 |
+| 3D modeling | 01 02 03 05 08 14 15 22 26 28 32 34 37 |
+| Parametrics and audit | 41–48 |
+| Assemblies | 04 10 16 17 29 35 |
+| Drafting | 06 07 19 20 21 27 31 33 54 |
 | FEA | 09 24 25 30 |
-| Motion | 18 23 36 (16 and 17 cover assembly-level joints) |
-| Measurement & reverse engineering | 38 39 40 49 |
-| Deliverable verification | 50 51 52 53 (STEP entity census, STL topology, import matrix, occupancy gate, PMI subtypes) |
+| Motion | 18 23 36 (16/17 cover assembly-level joints) |
+| Measurement and reverse | 38 39 40 49 |
+| Deliverable verification | 50 51 52 53 |
 
-The suite is 54 case files: 51 gated cases plus three one-shot API probes that are not part of the check and are kept for reference.
-
-## Why this skill
-
-NXOpen is hard less because of syntax than because it is difficult to tell from the documentation which
-calls survive NX 12 batch mode and which ones take the process down. This skill turns those
-judgements into recipes: each conclusion is first checked against nxopen MCP, then run in NX 12
-batch mode. Conclusions that can be guarded have regression cases, so a change that breaks one
-shows up when running `scripts\tests\RUN_TESTS.bat`. Dead ends are inlined as a one-line constraint
-in the matching route ("when this happens, do that"); only cross-domain high-frequency traps stay in
-`SKILL.md` §1. For interference checking use the boolean-intersect route and
-the `SimpleInterference` route, for threaded holes use "pilot hole plus annotation".
-
-## Known limitations
-
-- Validated on Windows 11 + NX 12.0.0.27; other platforms and versions are untested.
-- A batch session cannot capture an image: the image-capture builder commits without writing a file,
-  and `Disp.CreateImage` raises a memory access violation. View orientation and rendering style do
-  work. So images come from two routes instead: drawings as PDF out of Drafting, and solid geometry
-  as STL rendered outside NX, which is how the figures in the toolkit README are produced.
-- Case 26 keeps one native crash as a boundary record, which is why exit codes cannot be used as the
-  verdict. The crash happens in its own NX process, and the skill never writes into the NX
-  installation.
-- A deliverable gate reports `NO_SIGNAL` instead of `PASS` when the instrument cannot see the
-  artifact, and returns the reason with the verdict (missing `ezdxf`, missing `pymupdf`, station
-  pitch coarser than half the smallest feature, no extractable text on the page). ASCII DXF is
-  parsed with the standard library and needs no `ezdxf`; binary DXF without the library can only
-  report `NO_SIGNAL`.
-- The drawing PDF gate counts extractable tokens (default threshold 3 words): it proves the page has
-  a text layer, not that the content is complete. The title block and the Chinese technical notes
-  are vector paths and are read back from the NX model, so judge content with `--pdf-expect`.
-- Of the nine pattern types, `Linear`, `Circular`, `AlongPath`, `Helix`, `Polygon`, `Spiral`,
-  `General` and `Reference` all produce instances through `PatternFeatureBuilder` (cases 01, 02, 22,
-  28, 32); `Mirror` is rejected at commit, so mirrored features go through
-  `Features.MirrorFeatureBuilder` (case 03).
-- Reverse engineering still does not guarantee success on complex parts: this version provides a
-  structure inventory, an editable feature tree and an independently recomputed acceptance chain,
-  but a complex casting (steering knuckle) is still not rebuilt correctly in one pass.
-  It is not a promise that any part can be rebuilt in one pass.
-- The assembly layer offers positioning mates only (`Touch`/`Concentric`/`Fix`/`Distance`/
-  `Parallel`/`Perpendicular`/`Angle`/`Fit`/`Bond` and friends): ball, cylindrical, hinge and slider
-  joints cannot be created there on NX 12 (assigning the type throws). For a true spatial linkage,
-  position the components and build the joints in Motion; forcing `Fit`/`Bond` makes the solver
-  throw the parts away.
-- The skill only generates scripts and artifacts; it does not modify the NX installation, and
-  scripts and models are written to the working directory.
-
-## Repository layout
-
-```
-nxopen-journal/
-├── SKILL.md                        entry layer: rules / environment / skeleton / common operations / logging / workflow / routing
-├── LICENSE                         MIT license
-├── CHANGELOG.md                    version history (Keep a Changelog)
-├── .github/workflows/ci.yml        cloud CI (check_repo.py / check_journal rule self-test / journal static check, no NX)
-├── docs/wiki/                      maintainer guide: architecture / execution flow / modules / data flow / boundaries (entry [docs/wiki/README.md](docs/wiki/README.md))
-├── references/                     nine domain files: modeling / assembly / drafting / drafting-annotation / fea / motion / gb-drawing / reverse-engineering / verification
-├── scripts/
-│   ├── gb_drawing.py               GB-style drawing kit (frame / pinned views / assembly balloons / sections / full title block / tech note / dimension lanes / PDF)
-│   ├── nxlib/                      case standard layer (test framework + recipe modules, imported by the cases)
-│   ├── check_journal.py            static check (AST + rule base of measured pitfalls)
-│   ├── check_repo.py               repo self-check (eight groups: Py3.6 syntax / case list / doc structure / file list / standard-layer exclusivity / doc conciseness / route-first / maintainer wiki)
-│   ├── run_journal_batch.bat       single-file batch replay (NX_HOME parameterised)
-│   ├── render/                     offline figure chain (shaded STL rendering, PDF rasterising, trim and scale bar)
-│   └── tests/                      regression suite (51 gated cases + 3 one-shot probes) plus its own README
-└── agents/openai.yaml              Codex / OpenAI front-end config for cross-agent portability
+```bash
+python scripts/check_repo.py
+scripts\tests\RUN_TESTS.bat
 ```
 
-The repository ships a cloud CI (`.github/workflows/ci.yml`) that runs `check_repo.py`, the
-`check_journal` rule self-test and a static check of every journal on each push; none of these needs
-NX. The regression suite itself needs a machine with NX 12 installed.
+## License
+
+MIT. See [LICENSE](LICENSE).
