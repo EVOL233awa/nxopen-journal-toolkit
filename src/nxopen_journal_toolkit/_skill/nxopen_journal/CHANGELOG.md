@@ -5,6 +5,23 @@
 格式遵循 [Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/)，版本号遵循 [Semantic Versioning](https://semver.org/spec/v2.0.0.html)。
 记录从 1.1.0 起；1.0.0 见 `git tag v1.0.0` 与对应 GitHub Release。
 
+## [1.7.1] - 2026-11-28
+
+修复 5.9 规则对形状与布尔设置的误报。
+
+### Changed
+
+- 内部：`verify_check_rules.py` 补 5.9 布尔设置反例与形状 `Type`、`BooleanType.Create` 阴性对照。
+- 许可：`LICENSE` 版权行补仓库地址，新增 `NOTICE` 与 `TRADEMARK.md`（MIT 条款不变）。
+
+### Fixed
+
+- `check_journal.py` 5.9：`BlockFeatureBuilder` 的形状 `.Type` 不再误报。
+- `check_journal.py` 5.9：新增 `BooleanOption.SetBooleanOperationAndBody` 检测。
+- `check_journal.py` 5.9：去掉命中后的 `break`，后续布尔误用不再被前面的形状 `Type` 掩盖。
+- `check_journal.py` 5.9：builder 识别改为按词法作用域，同名变量不再跨函数误判。
+- `check_journal.py` 5.9：`BooleanOption.Type = ...BooleanType.Create` 不再误报。
+
 ## [1.7.0] - 2026-11-19
 
 装配图补齐 GB 序号、剖视与标题栏。
@@ -190,4 +207,5 @@ Motion 滑动副与齿轮连接件。
 [1.4.0]: https://github.com/EVOL233awa/nxopen-journal/releases/tag/v1.4.0
 [1.5.0]: https://github.com/EVOL233awa/nxopen-journal/releases/tag/v1.5.0
 [1.6.0]: https://github.com/EVOL233awa/nxopen-journal/releases/tag/v1.6.0
+[1.7.1]: https://github.com/EVOL233awa/nxopen-journal/releases/tag/v1.7.1
 [1.7.0]: https://github.com/EVOL233awa/nxopen-journal/releases/tag/v1.7.0

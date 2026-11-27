@@ -1,22 +1,23 @@
 {
   "skill": {
-    "version": "v1.7.0",
-    "commit": "d255128a85992c7e29090c2ed03aef8ac4b0248f",
-    "file_count": 115,
-    "tree_sha256": "b75135107c429f4a66a40e5079698b9073d326c065c4ce503ce7f52280182d62",
+    "version": "v1.7.1",
+    "commit": "34b57f0cc012aa8dd6cb54264e607faecbeaa004",
+    "file_count": 117,
+    "tree_sha256": "a86aa20a612696bee7b31fc05845e16bbf110ef9c0e9ebca69378cb884aa2da1",
     "files": {
       ".gitattributes": "60fbdf48b53ac9d359360a35c7cd432fc063d2d3626b7fd070eb98ab1542aaef",
       "agents/openai.yaml": "469b0e32a5d761927303429cdd9100eff600c56345d67fbb9589d63af5ebf0e6",
-      "CHANGELOG.md": "205a9f6cc38ef5e4adc21c15b8dad9319ea271c44e683aef83a4922bf8c03daa",
+      "CHANGELOG.md": "f980d43a8c856c6d8251d75a4c1181923b2e0e830dd67c5a7fdea1700acb5a47",
       "docs/wiki/01-architecture.md": "0359f1b51db0cb040736a613ab2e71619377469c37ff84ae06e72425a839bd78",
       "docs/wiki/02-execution-flow.md": "e6e11717751c200624cda55a0d8f150f1b4604edd15513adf3f462e3acd9fdfc",
       "docs/wiki/03-modules.md": "109dee08efd065c5d8340a11166407ccc64d78e1d02792e83fb98aad636fc2a6",
       "docs/wiki/04-data-flow.md": "33efa6cded6bf12dcf259f70c744d584059575819fea497af29730ade00e049f",
       "docs/wiki/05-boundaries.md": "df6c482cfb654dd3d3cf8b1dec6cdbbaaa11d94e31f550c91595e3188f51396a",
       "docs/wiki/README.md": "d118d19d6180b8207af9d45dc6d2156274b8206dacc8fc6d45920772f1a60b24",
-      "LICENSE": "bc8b379fdfd394fa1764329c1f13984ef368bec44fa2d68a243c3f3cc452786e",
-      "README.en.md": "e2b9a6f3c40a5f79b907dd96119815a32237acb9a6ecaa51ea200e3c8ab34c22",
-      "README.md": "f85e303985efdd84ac80c42ef6fa0fdb6cc919bc778b6ed658c02ee12408e235",
+      "LICENSE": "9ce13b2ff8668df94172a3b8d46ab5165373303f9b1cb230c8e1e923296ac8ae",
+      "NOTICE": "d620302a0889db89dc4f329e884703538d8e628c47a80d4bea7b627d4cfa0993",
+      "README.en.md": "1a4072bd109acb338defc74fe6f1820f5659c1c5a7d70b02f861470d1c20b2ea",
+      "README.md": "1e2f621adac3b364df84e5f26cd38d8c0c2c91f13d6ed663afa7bb2ea82aeb88",
       "references/assembly.md": "c7c749253c4938e2b2c9df8dab93224a2d789c0334fd94372e5a83128e718036",
       "references/drafting-annotation.md": "b5291430022b90cae58c6ecb8b26979401fb2673cf9f8010bf5253fdd1302660",
       "references/drafting.md": "31eab501e5ea279e4ad2636b3d013bcda00c61544530f17ae39a7bd877dd9971",
@@ -28,7 +29,7 @@
       "references/verification.md": "3fec4ecb5937e4d61d0fecbe4378bb172193c6599aa16ede9bacd18768d13c3f",
       "scripts/api_index.py": "53d4c82e4f5d767927b86b5a92eb830989705bb1170a9014d1e6093ff8e976e6",
       "scripts/check_deliverables.py": "7dea27a56fd938351a1dd68e910e6bb29b911a56216c7f8e29e8df987181bb99",
-      "scripts/check_journal.py": "7ab588de089cca002125126f7d6b6999325be521ca3d87c748395f3101c39ada",
+      "scripts/check_journal.py": "ab18b87f02ab57fadabbc2b5d34ad9b638bf5f1396a5b8daae28c384fcfab998",
       "scripts/check_repo.py": "f0881843a575102d5b248df2fb086faf7cea3f5cb4d5d3e238b9c120cd78bbf1",
       "scripts/deliverable.py": "8b881931302dd09d7eae463fdc7edbe21fa73170b7eea10b4c1f232ec4779a24",
       "scripts/gb_drawing.py": "d8a4cda767c09b8a940434c71f87c7bbeeaab5c6d5afedf9b2f5495b4b7196d3",
@@ -116,10 +117,11 @@
       "scripts/tests/README.md": "baf2aa01e8b3a46a5469074344cbcf0e33f35cda3a1b8e0b590f30016eb838ab",
       "scripts/tests/RUN_TESTS.bat": "45a798447f701a897beb8b86adf9a664f0de4c3a653e6eb3771bceb9a242d25f",
       "scripts/tests/verify_anno_pdf.py": "2a81244ce4d8302f7ef66ba2e72aa945111cb5cc5fb52eee0fec3305b75c104f",
-      "scripts/tests/verify_check_rules.py": "8239cdce4c08975c0e702744ff75db4dbd40e466d03e4d309d6c161cbc2e0a37",
+      "scripts/tests/verify_check_rules.py": "7de5eeab4ea9e4c4272ac412a36af1fe29b9bbfc3b397b75d83df8e6c01ab502",
       "scripts/tests/verify_load_options.py": "7bfef352f230a9c51189faee0ef31b12b3e765a96021bf85cfcc4ff2cb7834ff",
       "scripts/tests/verify_runner_markers.py": "2dfdc312d690a20cae0adc5480c248fed6561cbbba12b0fe0133de3e258e01c6",
-      "SKILL.md": "9253f46b19bb044721185d26e88ef6f523b4db469383d8e01a55adc6a03391e7"
+      "SKILL.md": "5192b53aa736083f830e5eef9c0eb60f3406434daa52ba8c1b9d38e03c76f63f",
+      "TRADEMARK.md": "31765bb3aea61dc7180d8bea5d8d50e70a278a9363fd47c4376a08cf1ac791d9"
     }
   }
 }

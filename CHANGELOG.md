@@ -4,7 +4,9 @@
 
 格式遵循 [Keep a Changelog 2.0.0](https://keepachangelog.com/zh-CN/2.0.0/)，版本号遵循 [Semantic Versioning 2.0.0](https://semver.org/lang/zh-CN/)。
 
-## [Unreleased]
+## [1.0.1] - 2026-11-28
+
+补署名与许可声明，统一源码换行。
 
 ### Changed
 
@@ -27,4 +29,5 @@
 - 提供 `nxopen-journal-toolkit` 与 `nxjt` 两个命令入口。
 - 文档：新增中英双语 README 与安装说明。
 
+[1.0.1]: https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/tag/v1.0.1
 [1.0.0]: https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/tag/v1.0.0

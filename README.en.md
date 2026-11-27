@@ -4,7 +4,7 @@
 
 An agent toolkit for NX 12: one skill plus one API-retrieval MCP, installed with one command.
 
-`Windows 11` · `NX 12 (12.0.0.27)` · `Python 3.11+` · `Skill 1.7.0` · `v1.0.0` · `MIT`
+`Windows 11` · `NX 12 (12.0.0.27)` · `Python 3.11+` · `Skill 1.7.1` · `v1.0.1` · `MIT`
 
 ## Contents
 
@@ -161,8 +161,8 @@ Prerequisites (stop and report if any is missing; do not skip):
 
 Steps:
 1. Install the toolkit (not on PyPI; install from GitHub Releases, MCP first):
-   python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
-   python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+   python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.1/nxopen_mcp_enhanced-1.0.1-py3-none-any.whl
+   python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.1/nxopen_journal_toolkit-1.0.1-py3-none-any.whl
    Optional: python -m pip install pythonnet (show inherited members in get_class).
 2. Place the skill:
    - The snapshot lives under the installed package's _skill/nxopen_journal; get its absolute path:
@@ -230,8 +230,8 @@ You can also install manually with the steps below.
 Neither this repository nor `nxopen-mcp-enhanced` is on PyPI; both wheels are attached to GitHub Releases. The MCP is a dependency of the toolkit; install the MCP first so that `pip` satisfies the dependency locally:
 
 ```bash
-python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
-python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.1/nxopen_mcp_enhanced-1.0.1-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.1/nxopen_journal_toolkit-1.0.1-py3-none-any.whl
 ```
 
 For development or extras, install from source (editable), again MCP first:

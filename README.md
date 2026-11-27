@@ -4,7 +4,7 @@
 
 面向 NX 12 的 agent 工具包：技能 + API 检索 MCP，一条命令安装。
 
-`Windows 11` · `NX 12 (12.0.0.27)` · `Python 3.11+` · `Skill 1.7.0` · `v1.0.0` · `MIT`
+`Windows 11` · `NX 12 (12.0.0.27)` · `Python 3.11+` · `Skill 1.7.1` · `v1.0.1` · `MIT`
 
 ## 目录
 
@@ -160,8 +160,8 @@ nxopen-journal-toolkit/
 
 步骤：
 1. 安装工具包（未发布到 PyPI，从 GitHub Release 安装；先装 MCP，再装工具包）：
-   python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
-   python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+   python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.1/nxopen_mcp_enhanced-1.0.1-py3-none-any.whl
+   python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.1/nxopen_journal_toolkit-1.0.1-py3-none-any.whl
    可选：python -m pip install pythonnet（get_class 显示继承链）。
 2. 放置技能：
    - 快照在已安装包的 _skill/nxopen_journal 下，用下面一行取得绝对路径：
@@ -223,8 +223,8 @@ nxopen-journal-toolkit/
 本仓库与 `nxopen-mcp-enhanced` 都未发布到 PyPI，安装包挂在 GitHub Release。MCP 是工具包的依赖，先装 MCP 再装工具包，`pip` 才能在本机满足依赖：
 
 ```bash
-python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.0/nxopen_mcp_enhanced-1.0.0-py3-none-any.whl
-python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.0/nxopen_journal_toolkit-1.0.0-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-mcp-enhanced/releases/download/v1.0.1/nxopen_mcp_enhanced-1.0.1-py3-none-any.whl
+python -m pip install https://github.com/EVOL233awa/nxopen-journal-toolkit/releases/download/v1.0.1/nxopen_journal_toolkit-1.0.1-py3-none-any.whl
 ```
 
 开发或需要 extras 时从源码安装（editable），顺序同样先 MCP 后工具包：
