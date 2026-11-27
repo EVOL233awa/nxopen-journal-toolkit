@@ -5,6 +5,9 @@ description = "One-command installer for the nxopen-journal skill and nxopen-mcp
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
+authors = [
+    { name = "EVOL233awa", email = "89311835+EVOL233awa@users.noreply.github.com" },
+]
 keywords = ["nxopen", "siemens-nx", "journal", "mcp", "nx12"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -18,6 +21,13 @@ dependencies = [
     "nxopen-mcp-enhanced>=1.0,<2.0",
     "typer>=0.16",
 ]
+
+[project.urls]
+Homepage = "https://github.com/EVOL233awa/nxopen-journal-toolkit"
+Repository = "https://github.com/EVOL233awa/nxopen-journal-toolkit"
+Issues = "https://github.com/EVOL233awa/nxopen-journal-toolkit/issues"
+Changelog = "https://github.com/EVOL233awa/nxopen-journal-toolkit/blob/main/CHANGELOG.md"
+Skill = "https://github.com/EVOL233awa/nxopen-journal"
 
 [project.scripts]
 nxopen-journal-toolkit = "nxopen_journal_toolkit.cli:app"
