@@ -4,6 +4,14 @@
 
 格式遵循 [Keep a Changelog 2.0.0](https://keepachangelog.com/zh-CN/2.0.0/)，版本号遵循 [Semantic Versioning 2.0.0](https://semver.org/lang/zh-CN/)。
 
+## [Unreleased]
+
+### Changed
+
+- 许可：`LICENSE` 版权行补仓库地址，新增 `NOTICE` 与 `TRADEMARK.md`（MIT 条款不变）。
+- 源码归档与克隆统一为 LF 换行，`*.bat` 保持 CRLF。
+- 内部：`pyproject.toml` 补 `authors` 与 `[project.urls]`，`pip show` 显示作者与仓库。
+
 ## [1.0.0] - 2026-11-21
 
 首个版本，一条命令完成安装。
